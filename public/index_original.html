@@ -1,0 +1,1435 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SIMAGA - Sistem Informasi Magang & Alumni FILKOM UB</title>
+  
+  <!-- Google Fonts: Plus Jakarta Sans & Merriweather -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;0,900;1,300;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#F0FDF4',
+              100: '#DCFCE7',
+              700: '#15803D',
+              800: '#143E35', // Primary Deep University Emerald
+              900: '#0C2B24',
+              950: '#071A16'
+            },
+            cream: {
+              50: '#FAF8F5',
+              100: '#FAF7F2',
+              200: '#F4EFEA',
+              300: '#EBE4DC'
+            },
+            gold: {
+              500: '#D4AF37',
+              600: '#B45309'
+            }
+          },
+          fontFamily: {
+            sans: ['Plus Jakarta Sans', 'sans-serif'],
+            serif: ['Merriweather', 'serif']
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <!-- Chart.js for Admin IKU 1 Dashboard -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- jsPDF & QRious for Client-Side PDF & QR Generation -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="bg-cream-100 text-gray-800 min-h-screen flex flex-col antialiased selection:bg-brand-800 selection:text-white">
+
+  <!-- ==============================================================================
+       TOP NOTIFICATION BAR (FILKOM UB OFFICIAL)
+       ============================================================================== -->
+  <div class="bg-brand-900 text-white text-[11px] py-1.5 px-4 font-medium flex justify-between items-center border-b border-brand-950">
+    <div class="max-w-7xl mx-auto w-full flex justify-between items-center">
+      <div class="flex items-center gap-2">
+        <span class="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+        <span>Sistem Informasi Magang & Alumni (Tracer Study) — Fakultas Ilmu Komputer Universitas Brawijaya</span>
+      </div>
+      <div class="flex items-center gap-4">
+        <button onclick="window.SIMAGA_ROUTER.openConfigModal()" class="hover:underline flex items-center gap-1 text-emerald-200 hover:text-white transition-colors">
+          <i data-lucide="cloud-cog" class="w-3.5 h-3.5"></i> Integrasi Google Sheets & Drive
+        </button>
+        <span class="hidden sm:inline text-gray-400">|</span>
+        <span class="hidden sm:inline text-gray-300">Tahun Akademik 2026/2027</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==============================================================================
+       MAIN NAVBAR (ACADEMIC PRESTIGE STYLE)
+       ============================================================================== -->
+  <header class="sticky top-0 z-40 nav-glass">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+      
+      <!-- Logo & Brand -->
+      <a href="#beranda" class="flex items-center gap-3.5 group">
+        <div class="w-12 h-12 rounded-2xl bg-brand-800 flex items-center justify-center text-white shadow-md shadow-brand-900/20 group-hover:scale-105 transition-transform">
+          <i data-lucide="graduation-cap" class="w-6 h-6 text-gold-500"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="text-xl font-extrabold tracking-tight text-brand-900">SIMAGA</span>
+            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-brand-800 border border-emerald-200">FILKOM UB</span>
+          </div>
+          <p class="text-[11px] font-medium text-gray-500 tracking-wide">Magang Bersertifikat & Tracer Study IKU 1</p>
+        </div>
+      </a>
+
+      <!-- Desktop Nav Links -->
+      <nav class="hidden md:flex items-center gap-6 text-sm font-semibold">
+        <a href="#beranda" class="nav-link text-brand-900 font-bold hover:text-brand-700 transition-colors">Beranda</a>
+        
+        <!-- Mahasiswa Links -->
+        <div id="nav-role-mahasiswa" class="role-nav hidden flex items-center gap-5">
+          <a href="#mhs-lowongan" class="nav-link text-gray-600 hover:text-brand-900 transition-colors">Katalog Magang</a>
+          <a href="#mhs-lamaran" class="nav-link text-gray-600 hover:text-brand-900 transition-colors">Riwayat Lamaran Saya</a>
+        </div>
+
+        <!-- Alumni Links -->
+        <div id="nav-role-alumni" class="role-nav hidden flex items-center gap-5">
+          <a href="#alm-lowongan" class="nav-link text-gray-600 hover:text-brand-900 transition-colors">Lowongan Kerja</a>
+          <a href="#alm-tracer" class="nav-link text-gray-600 hover:text-brand-900 transition-colors">Kuesioner Tracer Study</a>
+        </div>
+
+        <!-- Mitra Industri Links -->
+        <div id="nav-role-mitraindustri" class="role-nav hidden flex items-center gap-5">
+          <a href="#min-buat-lowongan" class="nav-link text-gray-600 hover:text-brand-900 transition-colors">Publikasi Lowongan</a>
+          <a href="#min-lowongan-saya" class="nav-link text-gray-600 hover:text-brand-900 transition-colors">Lowongan Saya</a>
+          <a href="#min-pelamar" class="nav-link text-gray-600 hover:text-brand-900 transition-colors">Seleksi Pelamar Magang</a>
+        </div>
+
+        <!-- Admin Links -->
+        <div id="nav-role-admin" class="role-nav hidden flex items-center gap-5">
+          <a href="#adm-analitik" class="nav-link text-gray-600 hover:text-brand-900 transition-colors">Dasbor Analitik IKU 1</a>
+          <a href="#adm-kurasi" class="nav-link text-gray-600 hover:text-brand-900 transition-colors">Kurasi Lowongan</a>
+          <a href="#adm-verifikasi" class="nav-link text-gray-600 hover:text-brand-900 transition-colors">Verifikasi Responden</a>
+        </div>
+
+        <a href="#tentang" class="nav-link text-gray-600 hover:text-brand-900 transition-colors">Tentang SIMAGA</a>
+        <a href="#faq" class="nav-link text-gray-600 hover:text-brand-900 transition-colors">Bantuan / FAQ</a>
+      </nav>
+
+      <!-- Auth Action & Notification Bell -->
+      <div class="flex items-center gap-3">
+        
+        <!-- Notifikasi Bell (User Only) -->
+        <div class="auth-user-only hidden relative">
+          <button id="btn-notif-bell" class="w-10 h-10 rounded-xl bg-white border border-gray-200 flex items-center justify-center text-gray-600 hover:text-brand-900 hover:bg-gray-50 transition-colors relative">
+            <i data-lucide="bell" class="w-4 h-4"></i>
+            <span id="notif-unread-badge" class="hidden absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-white">
+              0
+            </span>
+          </button>
+
+          <!-- Dropdown Notifikasi -->
+          <div id="notif-dropdown" class="hidden absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden z-50">
+            <div class="p-3 bg-brand-900 text-white flex justify-between items-center">
+              <span class="text-xs font-bold">Pemberitahuan Sistem</span>
+              <span class="text-[10px] text-emerald-200">Real-time Sheets Trigger</span>
+            </div>
+            <div id="notif-dropdown-list" class="max-h-72 overflow-y-auto divide-y divide-gray-100">
+              <!-- Render via app.js -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Tombol Masuk (Guest) -->
+        <div class="auth-guest-only">
+          <button onclick="document.getElementById('modal-login').classList.remove('hidden')" 
+            class="px-5 py-2.5 rounded-xl bg-brand-800 text-white text-xs font-bold hover:bg-brand-900 transition-all shadow-md shadow-brand-900/15 flex items-center gap-2">
+            <i data-lucide="log-in" class="w-4 h-4"></i> Masuk (Login)
+          </button>
+        </div>
+
+        <!-- Profil Chip & Logout (User) -->
+        <div class="auth-user-only hidden flex items-center gap-2">
+          <div class="hidden sm:flex flex-col text-right">
+            <span id="nav-user-name" class="text-xs font-bold text-gray-900">Nama Pengguna</span>
+            <span id="nav-user-role-badge" class="text-[10px] font-semibold text-gray-500">Role</span>
+          </div>
+          <button onclick="window.SIMAGA_AUTH.logout()" 
+            title="Keluar dari Akun" 
+            class="p-2.5 rounded-xl bg-red-50 text-red-700 hover:bg-red-100 border border-red-200 transition-colors flex items-center gap-1.5 text-xs font-bold">
+            <i data-lucide="log-out" class="w-4 h-4"></i>
+            <span class="hidden sm:inline">Keluar</span>
+          </button>
+        </div>
+
+      </div>
+
+    </div>
+  </header>
+
+  <!-- ==============================================================================
+       MAIN CONTAINER
+       ============================================================================== -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+    <!-- ============================================================================
+         VIEW 1: BERANDA / LANDING PAGE (Sesuai Gaya Desain Gambar Reference)
+         ============================================================================ -->
+    <section id="view-beranda" class="tab-content active space-y-16">
+      
+      <!-- HERO SECTION -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center pt-4 pb-8">
+        <div class="lg:col-span-7 space-y-6">
+          <div class="badge-pill-academic">
+            <i data-lucide="sparkles" class="w-3.5 h-3.5 text-gold-500"></i>
+            <span>Platform Terpadu Kemitraan & Pelacakan Alumni FILKOM UB</span>
+          </div>
+
+          <h1 class="text-4xl sm:text-5xl lg:text-6xl font-serif-prestige font-bold text-brand-900 leading-[1.15]">
+            Turn Your Ambition into <span class="italic font-normal text-brand-700 underline decoration-gold-500/60 decoration-wavy">Achievement</span>.
+          </h1>
+
+          <p class="text-base sm:text-lg text-gray-600 leading-relaxed max-w-2xl">
+            Menghubungkan mahasiswa aktif, alumni berprestasi, dan mitra industri terkemuka dalam satu ekosistem informasi terintegrasi dengan Google Sheets & Drive Storage resmi FILKOM Universitas Brawijaya.
+          </p>
+
+          <div class="flex flex-wrap items-center gap-4 pt-2">
+            <button onclick="document.getElementById('modal-login').classList.remove('hidden')" 
+              class="px-7 py-3.5 rounded-xl bg-brand-800 text-white font-bold text-sm hover:bg-brand-900 shadow-lg shadow-brand-900/20 transition-all flex items-center gap-2 group">
+              <span>Masuk ke Portal SIMAGA</span>
+              <i data-lucide="arrow-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
+            </button>
+            <button onclick="window.SIMAGA_ROUTER.navigateTo('mhs-lowongan')" 
+              class="px-6 py-3.5 rounded-xl bg-white border border-gray-300 text-gray-800 font-bold text-sm hover:bg-gray-50 transition-colors">
+              Jelajahi Katalog Lowongan
+            </button>
+          </div>
+
+          <!-- Quick Stats Pill Bar -->
+          <div class="pt-6 border-t border-cream-300 flex flex-wrap items-center gap-8">
+            <div>
+              <div class="text-3xl font-extrabold text-brand-900">99%</div>
+              <div class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Tingkat Kelulusan Tepat Waktu</div>
+            </div>
+            <div class="w-px h-10 bg-gray-200 hidden sm:block"></div>
+            <div>
+              <div class="text-3xl font-extrabold text-brand-900">95%</div>
+              <div class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Bekerja Sesuai Bidang Studi</div>
+            </div>
+            <div class="w-px h-10 bg-gray-200 hidden sm:block"></div>
+            <div>
+              <div class="text-3xl font-extrabold text-brand-900">150+</div>
+              <div class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Mitra Industri Terkurasi</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- HERO GRAPHIC CARD (Architectural University Graphic Inspired by Reference) -->
+        <div class="lg:col-span-5 relative">
+          <div class="bg-brand-800 rounded-3xl p-8 text-white relative overflow-hidden shadow-2xl">
+            <!-- Decorative circle -->
+            <div class="absolute -right-12 -top-12 w-48 h-48 rounded-full bg-emerald-700/30 blur-2xl"></div>
+            
+            <div class="relative z-10 space-y-6">
+              <div class="inline-flex items-center gap-2 text-xs font-bold tracking-widest text-emerald-300 uppercase">
+                <i data-lucide="shield-check" class="w-4 h-4 text-gold-500"></i> Backend Google Workspace
+              </div>
+
+              <h2 class="text-2xl sm:text-3xl font-serif-prestige font-bold leading-snug">
+                The right opportunity can turn dreams into limitless potential.
+              </h2>
+
+              <p class="text-xs sm:text-sm text-emerald-100/90 leading-relaxed">
+                Dikembangkan oleh Program Studi Sistem Informasi FILKOM UB guna mengatasi fragmentasi publikasi lowongan, inefisiensi pengunggahan berkas administrasi magang, dan rendahnya partisipasi survei IKU 1.
+              </p>
+
+              <!-- Architecture feature cards inside hero -->
+              <div class="space-y-3 pt-2">
+                <div class="p-3.5 rounded-2xl bg-white/10 backdrop-blur-md border border-white/10 flex items-center gap-3">
+                  <div class="w-9 h-9 rounded-xl bg-gold-500/20 text-gold-500 flex items-center justify-center font-bold">
+                    <i data-lucide="sheet" class="w-5 h-5"></i>
+                  </div>
+                  <div>
+                    <h4 class="text-xs font-bold text-white">Google Sheets as Relational DB</h4>
+                    <p class="text-[11px] text-emerald-200">11 Tab Relasional CRUD otomatis</p>
+                  </div>
+                </div>
+
+                <div class="p-3.5 rounded-2xl bg-white/10 backdrop-blur-md border border-white/10 flex items-center gap-3">
+                  <div class="w-9 h-9 rounded-xl bg-emerald-400/20 text-emerald-300 flex items-center justify-center font-bold">
+                    <i data-lucide="hard-drive" class="w-5 h-5"></i>
+                  </div>
+                  <div>
+                    <h4 class="text-xs font-bold text-white">Google Drive Cloud Storage</h4>
+                    <p class="text-[11px] text-emerald-200">Penyimpanan 3 Berkas PDF (CV, Transkrip, Surat Rekomendasi)</p>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- THREE CORE PILLARS SECTION (From PDF Page 4) -->
+      <div class="space-y-8 pt-8">
+        <div class="text-center max-w-3xl mx-auto space-y-2">
+          <span class="badge-pill-academic">
+            <i data-lucide="layers" class="w-3.5 h-3.5 text-brand-800"></i>
+            Tiga Pilar Layanan Utama SIMAGA
+          </span>
+          <h2 class="text-3xl font-serif-prestige font-bold text-brand-900">
+            Ekosistem Informasi Digital Terpadu FILKOM UB
+          </h2>
+          <p class="text-sm text-gray-600">
+            Dirancang secara responsif dan lintas platform guna modernisasi tata kelola karier, seleksi magang bersertifikat, dan penelusuran lulusan.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          
+          <!-- Pilar 1 -->
+          <div class="card-academic p-8 space-y-4">
+            <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-800 border border-emerald-200 flex items-center justify-center">
+              <i data-lucide="briefcase" class="w-6 h-6"></i>
+            </div>
+            <h3 class="text-xl font-bold text-gray-900">1. Publikasi & Kurasi Lowongan</h3>
+            <p class="text-xs text-gray-600 leading-relaxed">
+              Kanal resmi bagi mitra industri untuk mengajukan lowongan magang bersertifikat atau kerja, yang kemudian diverifikasi dan disetujui resmi oleh staf unit Career & Internship sebelum dipublikasikan.
+            </p>
+            <ul class="text-xs text-gray-500 space-y-1.5 pt-2">
+              <li class="flex items-center gap-2"><i data-lucide="check" class="w-3.5 h-3.5 text-emerald-600"></i> Standarisasi kualifikasi & beban kerja</li>
+              <li class="flex items-center gap-2"><i data-lucide="check" class="w-3.5 h-3.5 text-emerald-600"></i> Validasi tanggal & kuota pendaftaran</li>
+              <li class="flex items-center gap-2"><i data-lucide="check" class="w-3.5 h-3.5 text-emerald-600"></i> Notifikasi kurasi otomatis ke mitra</li>
+            </ul>
+          </div>
+
+          <!-- Pilar 2 -->
+          <div class="card-academic p-8 space-y-4">
+            <div class="w-12 h-12 rounded-2xl bg-blue-50 text-blue-800 border border-blue-200 flex items-center justify-center">
+              <i data-lucide="folder-git-2" class="w-6 h-6"></i>
+            </div>
+            <h3 class="text-xl font-bold text-gray-900">2. Administrasi Seleksi Magang</h3>
+            <p class="text-xs text-gray-600 leading-relaxed">
+              Memfasilitasi pendaftaran daring dengan pengunggahan 3 dokumen lamaran (CV, Transkrip Akademik, Surat Rekomendasi Fakultas) langsung ke Google Drive subfolder terisolasi.
+            </p>
+            <ul class="text-xs text-gray-500 space-y-1.5 pt-2">
+              <li class="flex items-center gap-2"><i data-lucide="check" class="w-3.5 h-3.5 text-emerald-600"></i> Validasi format (.pdf) & ukuran (&le; 5 MB)</li>
+              <li class="flex items-center gap-2"><i data-lucide="check" class="w-3.5 h-3.5 text-emerald-600"></i> Pemantauan status seleksi bertahap real-time</li>
+              <li class="flex items-center gap-2"><i data-lucide="check" class="w-3.5 h-3.5 text-emerald-600"></i> Akses langsung berkas oleh tim penilai mitra</li>
+            </ul>
+          </div>
+
+          <!-- Pilar 3 -->
+          <div class="card-academic p-8 space-y-4">
+            <div class="w-12 h-12 rounded-2xl bg-amber-50 text-amber-800 border border-amber-200 flex items-center justify-center">
+              <i data-lucide="line-chart" class="w-6 h-6"></i>
+            </div>
+            <h3 class="text-xl font-bold text-gray-900">3. Tracer Study & IKU 1</h3>
+            <p class="text-xs text-gray-600 leading-relaxed">
+              Kuesioner pelacakan transisi karier dinamis bertahap, penyimpanan draf sementara, penerbitan tanda terima PDF ber-QR Code, auto-flagging anomali gaji, dan ekspor IKU 1.
+            </p>
+            <ul class="text-xs text-gray-500 space-y-1.5 pt-2">
+              <li class="flex items-center gap-2"><i data-lucide="check" class="w-3.5 h-3.5 text-emerald-600"></i> Instrumen dinamis sesuai 4 status karier</li>
+              <li class="flex items-center gap-2"><i data-lucide="check" class="w-3.5 h-3.5 text-emerald-600"></i> Pengesahan data & pengingat massal</li>
+              <li class="flex items-center gap-2"><i data-lucide="check" class="w-3.5 h-3.5 text-emerald-600"></i> Ekspor akreditasi (.xlsx & .pdf)</li>
+            </ul>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- TESTIMONIALS / VOICES OF OUR COMMUNITY (From Reference Image) -->
+      <div class="bg-brand-900 text-white rounded-3xl p-8 sm:p-12 space-y-8 relative overflow-hidden">
+        <div class="text-center max-w-2xl mx-auto space-y-2">
+          <span class="text-xs font-bold text-gold-500 tracking-wider uppercase flex items-center justify-center gap-1.5">
+            <i data-lucide="quote" class="w-3.5 h-3.5"></i> Testimonial & Kolaborasi
+          </span>
+          <h2 class="text-3xl font-serif-prestige font-bold text-white">Voices From Our Community</h2>
+          <p class="text-xs text-emerald-200">Pengalaman nyata pemangku kepentingan yang terhubung dalam sistem informasi SIMAGA FILKOM UB.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs">
+          <div class="bg-white/10 backdrop-blur-md p-6 rounded-2xl border border-white/10 space-y-3">
+            <div class="flex text-gold-500">★★★★★</div>
+            <p class="text-emerald-100 leading-relaxed italic">
+              "Pendaftaran magang bersertifikat kini sangat transparan. Saya bisa langsung memantau apakah berkas saya sudah diperiksa, dijadwalkan wawancara, dan catatan link meeting langsung tercantum di portal!"
+            </p>
+            <div class="pt-2 border-t border-white/10">
+              <p class="font-bold text-white">Bambang Prakoso</p>
+              <p class="text-[11px] text-emerald-300">Mahasiswa Sistem Informasi Angkatan 2025</p>
+            </div>
+          </div>
+
+          <div class="bg-white/10 backdrop-blur-md p-6 rounded-2xl border border-white/10 space-y-3">
+            <div class="flex text-gold-500">★★★★★</div>
+            <p class="text-emerald-100 leading-relaxed italic">
+              "Sebagai mitra rekruter industri, kami tidak lagi pusing menyortir email pelamar yang berantakan. Seluruh CV, transkrip, dan surat rekomendasi mahasiswa tersusun rapi di subfolder Google Drive!"
+            </p>
+            <div class="pt-2 border-t border-white/10">
+              <p class="font-bold text-white">Carmenita Wijaya, S.Kom.</p>
+              <p class="text-[11px] text-emerald-300">Talent Acquisition Lead - PT Tech Indo Mandiri</p>
+            </div>
+          </div>
+
+          <div class="bg-white/10 backdrop-blur-md p-6 rounded-2xl border border-white/10 space-y-3">
+            <div class="flex text-gold-500">★★★★★</div>
+            <p class="text-emerald-100 leading-relaxed italic">
+              "Fitur simpan draf kuesioner dan tanda terima digital berstempel resmi dengan kode QR sangat memudahkan alumni saat membutuhkan legalisir untuk keperluan beasiswa maupun karier."
+            </p>
+            <div class="pt-2 border-t border-white/10">
+              <p class="font-bold text-white">Yaffa Anindya Oktaviani</p>
+              <p class="text-[11px] text-emerald-300">Alumni Fresh Graduate FILKOM UB</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- FAQ ACCORDION SECTION (From Reference Image) -->
+      <div id="faq" class="max-w-4xl mx-auto space-y-6 pt-4">
+        <div class="text-center space-y-2">
+          <span class="badge-pill-academic">
+            <i data-lucide="help-circle" class="w-3.5 h-3.5 text-brand-800"></i> Tanya Jawab Umum
+          </span>
+          <h2 class="text-2xl sm:text-3xl font-serif-prestige font-bold text-brand-900">Frequently Asked Questions</h2>
+        </div>
+
+        <div class="space-y-3">
+          <details class="bg-white p-5 rounded-2xl border border-gray-200 group">
+            <summary class="font-bold text-sm text-gray-900 cursor-pointer flex justify-between items-center list-none">
+              <span>Bagaimana berkas lamaran saya disimpan di Google Drive?</span>
+              <i data-lucide="chevron-down" class="w-4 h-4 text-gray-400 group-open:rotate-180 transition-transform"></i>
+            </summary>
+            <p class="text-xs text-gray-600 mt-3 pt-3 border-t border-gray-100 leading-relaxed">
+              Setiap kali Anda mengirimkan pendaftaran magang, sistem secara otomatis membuat subfolder khusus di Google Drive dengan format <code>SIMAGA_Storage/Pendaftaran_{id_pendaftaran}/</code>. Ketiga file PDF (CV, Transkrip Nilai Akademik, dan Surat Rekomendasi Fakultas) disimpan di folder tersebut dan link aksesnya dicatat ke dalam Google Sheet <code>berkas_persyaratan</code>.
+            </p>
+          </details>
+
+          <details class="bg-white p-5 rounded-2xl border border-gray-200 group">
+            <summary class="font-bold text-sm text-gray-900 cursor-pointer flex justify-between items-center list-none">
+              <span>Apa yang dimaksud dengan pendeteksian anomali data pada Tracer Study?</span>
+              <i data-lucide="chevron-down" class="w-4 h-4 text-gray-400 group-open:rotate-180 transition-transform"></i>
+            </summary>
+            <p class="text-xs text-gray-600 mt-3 pt-3 border-t border-gray-100 leading-relaxed">
+              Sistem SIMAGA dilengkapi logika otomatis untuk memeriksa keabsahan isian responden (misalnya gaji awal fresh graduate di atas Rp 50.000.000 atau masa tunggu kerja tidak logis). Baris data tersebut akan diberi tanda (flag) visual merah di dasbor Admin sehingga staf Career Center dapat melakukan klarifikasi sebelum data dimasukkan ke dalam perhitungan IKU 1.
+            </p>
+          </details>
+
+          <details class="bg-white p-5 rounded-2xl border border-gray-200 group">
+            <summary class="font-bold text-sm text-gray-900 cursor-pointer flex justify-between items-center list-none">
+              <span>Bagaimana cara memverifikasi keaslian Bukti Pengisian Kuesioner PDF?</span>
+              <i data-lucide="chevron-down" class="w-4 h-4 text-gray-400 group-open:rotate-180 transition-transform"></i>
+            </summary>
+            <p class="text-xs text-gray-600 mt-3 pt-3 border-t border-gray-100 leading-relaxed">
+              Setiap dokumen tanda terima PDF dilengkapi dengan Kode QR dinamis dan Nomor Referensi resmi (misal: <code>SIMAGA/TS/2026/0001</code>). Memindai kode QR akan menampilkan data pengesahan resmi dari pangkalan data SIMAGA FILKOM UB.
+            </p>
+          </details>
+        </div>
+      </div>
+
+      <!-- FOOTER CALL TO ACTION (From Reference Image) -->
+      <div class="bg-gradient-to-r from-brand-900 via-brand-800 to-emerald-900 rounded-3xl p-10 text-center text-white space-y-4 shadow-xl">
+        <h2 class="text-3xl font-serif-prestige font-bold">Start Your Journey Toward a Brighter Future.</h2>
+        <p class="text-xs sm:text-sm text-emerald-100 max-w-xl mx-auto">
+          Bergabunglah sekarang dengan komunitas akademik dan kemitraan industri FILKOM Universitas Brawijaya.
+        </p>
+        <div class="pt-2">
+          <button onclick="document.getElementById('modal-login').classList.remove('hidden')" 
+            class="px-8 py-3 bg-gold-500 hover:bg-yellow-500 text-brand-950 font-extrabold text-sm rounded-xl shadow-lg transition-transform hover:scale-105">
+            Masuk ke Sistem SIMAGA Sekarang
+          </button>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ============================================================================
+         VIEW 2: MAHASISWA - KATALOG LOWONGAN MAGANG (UI-02 / UC-03)
+         ============================================================================ -->
+    <section id="view-mhs-lowongan" class="tab-content space-y-6">
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 rounded-2xl border border-gray-200">
+        <div>
+          <span class="badge-pill-academic mb-1.5"><i data-lucide="search" class="w-3.5 h-3.5 text-brand-800"></i> Katalog Lowongan Magang</span>
+          <h2 class="text-2xl font-bold text-brand-900">Peluang Magang Bersertifikat Industri</h2>
+          <p class="text-xs text-gray-500">Lowongan resmi yang telah dikurasi dan disetujui oleh Career & Internship FILKOM UB.</p>
+        </div>
+        <button onclick="window.SIMAGA_ROUTER.navigateTo('mhs-lamaran')" 
+          class="px-4 py-2.5 bg-emerald-50 text-emerald-900 hover:bg-emerald-100 border border-emerald-200 rounded-xl text-xs font-bold transition-colors flex items-center gap-2">
+          <i data-lucide="clock" class="w-4 h-4"></i> Lihat Riwayat Lamaran Saya
+        </button>
+      </div>
+
+      <!-- Filter Bar (UI-02) -->
+      <div class="bg-white p-5 rounded-2xl border border-gray-200 grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
+        <div class="sm:col-span-5 relative">
+          <i data-lucide="search" class="w-4 h-4 text-gray-400 absolute left-3.5 top-3"></i>
+          <input type="text" id="mhs-search-input" oninput="window.SIMAGA_MHS.renderVacancies()" 
+            placeholder="Cari posisi (mis. UI/UX, Web, Flutter)..." 
+            class="w-full pl-10 pr-4 py-2 text-xs border border-gray-300 rounded-xl focus:ring-2 focus:ring-brand-800 focus:outline-none">
+        </div>
+        <div class="sm:col-span-3">
+          <select id="mhs-filter-jenis" onchange="window.SIMAGA_MHS.renderVacancies()" 
+            class="w-full py-2 px-3 text-xs border border-gray-300 rounded-xl focus:ring-2 focus:ring-brand-800 focus:outline-none bg-white">
+            <option value="all">Semua Jenis Kesempatan</option>
+            <option value="Magang Bersertifikat">Magang Bersertifikat</option>
+            <option value="Pekerjaan">Lowongan Pekerjaan</option>
+          </select>
+        </div>
+        <div class="sm:col-span-3">
+          <select id="mhs-filter-lokasi" onchange="window.SIMAGA_MHS.renderVacancies()" 
+            class="w-full py-2 px-3 text-xs border border-gray-300 rounded-xl focus:ring-2 focus:ring-brand-800 focus:outline-none bg-white">
+            <option value="all">Semua Lokasi</option>
+            <option value="Malang">Malang</option>
+            <option value="Surabaya">Surabaya</option>
+            <option value="Jakarta">Jakarta</option>
+            <option value="Remote">Remote</option>
+          </select>
+        </div>
+        <div class="sm:col-span-1">
+          <button onclick="window.SIMAGA_MHS.renderVacancies()" 
+            class="w-full py-2 bg-brand-800 hover:bg-brand-900 text-white rounded-xl text-xs font-bold transition-colors flex items-center justify-center">
+            <i data-lucide="filter" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Vacancies Grid -->
+      <div id="mhs-vacancies-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Render via mhs.js -->
+      </div>
+    </section>
+
+    <!-- ============================================================================
+         VIEW 3: MAHASISWA - RIWAYAT LAMARAN SAYA (UC-06)
+         ============================================================================ -->
+    <section id="view-mhs-lamaran" class="tab-content space-y-6">
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 rounded-2xl border border-gray-200">
+        <div>
+          <span class="badge-pill-academic mb-1.5"><i data-lucide="file-check-2" class="w-3.5 h-3.5 text-brand-800"></i> Riwayat Lamaran</span>
+          <h2 class="text-2xl font-bold text-brand-900">Pemantauan Status Seleksi Real-Time</h2>
+          <p class="text-xs text-gray-500">Pantau progres seleksi berkas di Google Drive, jadwal wawancara, hingga pengumuman penerimaan.</p>
+        </div>
+        <button onclick="window.SIMAGA_ROUTER.navigateTo('mhs-lowongan')" 
+          class="px-4 py-2.5 bg-brand-800 text-white rounded-xl text-xs font-bold hover:bg-brand-900 transition-colors flex items-center gap-2">
+          <i data-lucide="plus-circle" class="w-4 h-4"></i> Daftar Magang Baru
+        </button>
+      </div>
+
+      <div id="mhs-applications-container" class="space-y-4">
+        <!-- Render via mhs.js -->
+      </div>
+    </section>
+
+    <!-- ============================================================================
+         VIEW 4: ALUMNI - LOWONGAN KERJA (UI-02 / UC-10)
+         ============================================================================ -->
+    <section id="view-alm-lowongan" class="tab-content space-y-6">
+      <div class="flex justify-between items-center bg-white p-6 rounded-2xl border border-gray-200">
+        <div>
+          <span class="badge-pill-academic mb-1.5"><i data-lucide="briefcase" class="w-3.5 h-3.5 text-brand-800"></i> Katalog Alumni</span>
+          <h2 class="text-2xl font-bold text-brand-900">Peluang Karier Profesional & Fresh Graduate</h2>
+          <p class="text-xs text-gray-500">Lowongan pekerjaan terverifikasi khusus alumni FILKOM Universitas Brawijaya.</p>
+        </div>
+      </div>
+
+      <div class="bg-white p-4 rounded-2xl border border-gray-200 flex items-center gap-3">
+        <i data-lucide="search" class="w-4 h-4 text-gray-400"></i>
+        <input type="text" id="alm-search-input" oninput="window.SIMAGA_ALM.renderJobs()" 
+          placeholder="Cari lowongan pekerjaan..." 
+          class="w-full text-xs focus:outline-none bg-transparent">
+      </div>
+
+      <div id="alm-jobs-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Render via alm.js -->
+      </div>
+    </section>
+
+    <!-- ============================================================================
+         VIEW 5: ALUMNI - TRACER STUDY DINAMIS (UI-04 / UC-07 / UC-08 / UC-09)
+         ============================================================================ -->
+    <section id="view-alm-tracer" class="tab-content space-y-6">
+      
+      <!-- Panel Bukti Pengisian Ber-QR Code (Muncul jika sudah mengisi) -->
+      <div id="tracer-proof-panel" class="hidden bg-white rounded-3xl border-2 border-emerald-700/30 p-8 shadow-xl max-w-3xl mx-auto space-y-6">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 border-b border-gray-200">
+          <div>
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-300">
+              <i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i> Status: Telah Mengisi & Terverifikasi
+            </span>
+            <h2 class="text-2xl font-serif-prestige font-bold text-brand-900 mt-2">Tanda Terima Resmi Tracer Study</h2>
+            <p class="text-xs text-gray-500 font-mono" id="proof-ref-number">SIMAGA/TS/2026/0001</p>
+          </div>
+          <button onclick="window.SIMAGA_ALM.downloadProofPDF()" 
+            class="px-5 py-2.5 bg-brand-800 hover:bg-brand-900 text-white rounded-xl text-xs font-bold transition-all shadow-md flex items-center gap-2">
+            <i data-lucide="download" class="w-4 h-4 text-gold-500"></i> Unduh Bukti Pengisian (PDF)
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-12 gap-6 items-center">
+          <!-- Canvas QR Code -->
+          <div class="sm:col-span-5 flex flex-col items-center justify-center p-4 bg-gray-50 rounded-2xl border border-gray-200 text-center">
+            <canvas id="proof-qr-canvas" class="rounded-lg shadow-sm mb-2"></canvas>
+            <p class="text-[10px] font-bold text-brand-800 tracking-wider">PINDAI UNTUK VERIFIKASI KEASLIAN</p>
+            <p class="text-[9px] text-gray-400">Pangkalan Data Resmi FILKOM UB</p>
+          </div>
+
+          <!-- Data Singkat Alumni -->
+          <div class="sm:col-span-7 space-y-3 text-xs">
+            <div class="grid grid-cols-2 gap-2 p-3 bg-cream-50 rounded-xl border border-cream-200">
+              <div>
+                <span class="text-gray-500 block">Nama Alumni:</span>
+                <span id="proof-nama" class="font-bold text-gray-900">-</span>
+              </div>
+              <div>
+                <span class="text-gray-500 block">NIM:</span>
+                <span id="proof-nim" class="font-bold font-mono text-gray-900">-</span>
+              </div>
+              <div>
+                <span class="text-gray-500 block">Program Studi:</span>
+                <span id="proof-prodi" class="font-bold text-gray-900">-</span>
+              </div>
+              <div>
+                <span class="text-gray-500 block">Kondisi Karier:</span>
+                <span id="proof-status-karir" class="font-bold text-emerald-800">-</span>
+              </div>
+            </div>
+
+            <div class="text-[11px] text-gray-500">
+              Tanggal Pengisian: <span id="proof-tanggal" class="font-semibold text-gray-700">-</span>
+            </div>
+
+            <div class="digital-stamp">
+              TERVERIFIKASI SECARA ELEKTRONIK<br>
+              <span class="text-[10px] font-normal">SIMAGA FILKOM UNIVERSITAS BRAWIJAYA</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Formulir Dinamis Bertahap (UI-04) -->
+      <div id="tracer-form-container" class="bg-white rounded-3xl border border-gray-200 p-8 shadow-sm max-w-4xl mx-auto space-y-8">
+        
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 border-b border-gray-100">
+          <div>
+            <span class="badge-pill-academic mb-1.5"><i data-lucide="clipboard-pen" class="w-3.5 h-3.5 text-brand-800"></i> Instrumen Penelusuran Lulusan</span>
+            <h2 class="text-2xl font-serif-prestige font-bold text-brand-900">Kuesioner Tracer Study Alumni FILKOM UB</h2>
+            <p class="text-xs text-gray-500">Draf dapat disimpan sementara dan dilanjutkan kapan saja sebelum penyerahan permanen.</p>
+          </div>
+          <button onclick="window.SIMAGA_ALM.saveDraft()" 
+            class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5">
+            <i data-lucide="save" class="w-4 h-4"></i> Simpan Draf
+          </button>
+        </div>
+
+        <!-- Stepper Indicator (UI-04) -->
+        <div class="grid grid-cols-3 gap-2 text-center text-xs font-bold border-b border-gray-100 pb-4">
+          <div id="nav-step-1" onclick="window.SIMAGA_ALM.setStep(1)" class="p-2.5 rounded-xl cursor-pointer bg-brand-800 text-white">
+            1. Identitas Alumni
+          </div>
+          <div id="nav-step-2" onclick="window.SIMAGA_ALM.setStep(2)" class="p-2.5 rounded-xl cursor-pointer bg-gray-100 text-gray-600">
+            2. Status & Profil Karier
+          </div>
+          <div id="nav-step-3" onclick="window.SIMAGA_ALM.setStep(3)" class="p-2.5 rounded-xl cursor-pointer bg-gray-100 text-gray-600">
+            3. Evaluasi Kurikulum
+          </div>
+        </div>
+
+        <!-- STEP 1: IDENTITAS ALUMNI (READ-ONLY) -->
+        <div id="tracer-step-1" class="space-y-4">
+          <div class="bg-blue-50/70 p-4 rounded-2xl border border-blue-200 text-xs text-blue-900 flex items-center gap-2">
+            <i data-lucide="info" class="w-4 h-4 text-blue-700 flex-shrink-0"></i>
+            <span>Data identitas berikut disinkronkan secara otomatis dari Pangkalan Data Akademik FILKOM UB.</span>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-bold text-gray-700 mb-1">Nama Lengkap</label>
+              <input type="text" id="ts-readonly-nama" readonly class="w-full text-xs p-3 bg-gray-100 border border-gray-200 rounded-xl text-gray-700 font-semibold cursor-not-allowed">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-gray-700 mb-1">Nomor Induk Mahasiswa (NIM)</label>
+              <input type="text" id="ts-readonly-nim" readonly class="w-full text-xs p-3 bg-gray-100 border border-gray-200 rounded-xl text-gray-700 font-mono font-semibold cursor-not-allowed">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-gray-700 mb-1">Program Studi</label>
+              <input type="text" id="ts-readonly-prodi" readonly class="w-full text-xs p-3 bg-gray-100 border border-gray-200 rounded-xl text-gray-700 font-semibold cursor-not-allowed">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-gray-700 mb-1">Tahun Kelulusan</label>
+              <input type="text" id="ts-readonly-tahun" readonly class="w-full text-xs p-3 bg-gray-100 border border-gray-200 rounded-xl text-gray-700 font-semibold cursor-not-allowed">
+            </div>
+          </div>
+
+          <div class="flex justify-end pt-4">
+            <button onclick="window.SIMAGA_ALM.setStep(2)" class="px-6 py-2.5 bg-brand-800 text-white rounded-xl text-xs font-bold hover:bg-brand-900 transition-colors flex items-center gap-2">
+              Lanjut ke Status Karier <i data-lucide="arrow-right" class="w-4 h-4"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- STEP 2: STATUS & PROFIL KARIER DINAMIS -->
+        <div id="tracer-step-2" class="hidden space-y-6">
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-2">Pilih Kondisi Karier Anda Saat Ini: *</label>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <label class="flex items-center gap-2.5 p-3.5 bg-white border border-gray-200 rounded-2xl cursor-pointer hover:border-brand-800 transition-colors">
+                <input type="radio" name="ts-status-karir" value="Bekerja" onchange="window.SIMAGA_ALM.onCareerStatusChange()" class="accent-brand-800">
+                <span class="text-xs font-bold text-gray-800">Bekerja</span>
+              </label>
+              <label class="flex items-center gap-2.5 p-3.5 bg-white border border-gray-200 rounded-2xl cursor-pointer hover:border-brand-800 transition-colors">
+                <input type="radio" name="ts-status-karir" value="Wirausaha" onchange="window.SIMAGA_ALM.onCareerStatusChange()" class="accent-brand-800">
+                <span class="text-xs font-bold text-gray-800">Wirausaha</span>
+              </label>
+              <label class="flex items-center gap-2.5 p-3.5 bg-white border border-gray-200 rounded-2xl cursor-pointer hover:border-brand-800 transition-colors">
+                <input type="radio" name="ts-status-karir" value="Melanjutkan Studi" onchange="window.SIMAGA_ALM.onCareerStatusChange()" class="accent-brand-800">
+                <span class="text-xs font-bold text-gray-800">Studi Lanjut</span>
+              </label>
+              <label class="flex items-center gap-2.5 p-3.5 bg-white border border-gray-200 rounded-2xl cursor-pointer hover:border-brand-800 transition-colors">
+                <input type="radio" name="ts-status-karir" value="Sedang Mencari Kerja" onchange="window.SIMAGA_ALM.onCareerStatusChange()" class="accent-brand-800">
+                <span class="text-xs font-bold text-gray-800">Mencari Kerja</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Pertanyaan Lanjutan Dinamis (Render via alm.js) -->
+          <div id="ts-dynamic-questions" class="hidden"></div>
+
+          <div class="flex justify-between pt-4 border-t border-gray-100">
+            <button onclick="window.SIMAGA_ALM.setStep(1)" class="px-4 py-2 text-xs font-bold text-gray-600 hover:text-gray-900">
+              &larr; Kembali
+            </button>
+            <button onclick="window.SIMAGA_ALM.setStep(3)" class="px-6 py-2.5 bg-brand-800 text-white rounded-xl text-xs font-bold hover:bg-brand-900 transition-colors flex items-center gap-2">
+              Lanjut ke Evaluasi Kurikulum <i data-lucide="arrow-right" class="w-4 h-4"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- STEP 3: EVALUASI KURIKULUM & SUBMIT FINAL -->
+        <div id="tracer-step-3" class="hidden space-y-6">
+          <div class="space-y-4">
+            <div>
+              <label class="block text-xs font-bold text-gray-800 mb-1.5">
+                Seberapa relevan kurikulum dan kompetensi perkuliahan di FILKOM UB dengan kebutuhan karier Anda saat ini? (Skala 1 - 5) *
+              </label>
+              <div class="flex items-center gap-6 p-4 bg-gray-50 rounded-2xl border border-gray-200 text-xs font-bold">
+                <label class="flex items-center gap-1.5 cursor-pointer">
+                  <input type="radio" name="ts-relevansi" value="1" class="accent-brand-800"> 1 (Sangat Rendah)
+                </label>
+                <label class="flex items-center gap-1.5 cursor-pointer">
+                  <input type="radio" name="ts-relevansi" value="2" class="accent-brand-800"> 2 (Rendah)
+                </label>
+                <label class="flex items-center gap-1.5 cursor-pointer">
+                  <input type="radio" name="ts-relevansi" value="3" class="accent-brand-800"> 3 (Cukup)
+                </label>
+                <label class="flex items-center gap-1.5 cursor-pointer">
+                  <input type="radio" name="ts-relevansi" value="4" class="accent-brand-800"> 4 (Tinggi)
+                </label>
+                <label class="flex items-center gap-1.5 cursor-pointer">
+                  <input type="radio" name="ts-relevansi" value="5" checked class="accent-brand-800"> 5 (Sangat Tinggi)
+                </label>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-gray-800 mb-1.5">
+                Saran & Masukan Konstruktif untuk Pengembangan Kurikulum dan Layanan Karier FILKOM UB ke Depan:
+              </label>
+              <textarea id="ts-saran" rows="3" class="w-full text-xs p-3 border border-gray-300 rounded-xl bg-white" placeholder="Contoh: Perbanyak praktikum implementasi cloud infrastructure dan sertifikasi internasional..."></textarea>
+            </div>
+          </div>
+
+          <div class="flex justify-between items-center pt-6 border-t border-gray-200">
+            <button onclick="window.SIMAGA_ALM.setStep(2)" class="px-4 py-2 text-xs font-bold text-gray-600 hover:text-gray-900">
+              &larr; Kembali
+            </button>
+            <div class="flex gap-2">
+              <button onclick="window.SIMAGA_ALM.saveDraft()" 
+                class="px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-bold transition-colors">
+                Simpan Draf Saja
+              </button>
+              <button id="btn-submit-tracer" onclick="window.SIMAGA_ALM.submitSurvey()" 
+                class="px-7 py-2.5 bg-emerald-800 hover:bg-emerald-900 text-white rounded-xl text-xs font-extrabold shadow-md transition-all">
+                Kirim Kuesioner (Final)
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ============================================================================
+         VIEW 6: MITRA INDUSTRI - PUBLIKASI LOWONGAN BARU (UI-01 / UC-01)
+         ============================================================================ -->
+    <section id="view-min-buat-lowongan" class="tab-content space-y-6">
+      <div class="bg-white rounded-3xl border border-gray-200 p-8 shadow-sm max-w-4xl mx-auto space-y-6">
+        <div>
+          <span class="badge-pill-academic mb-1.5"><i data-lucide="plus-circle" class="w-3.5 h-3.5 text-brand-800"></i> Kemitraan Strategis</span>
+          <h2 class="text-2xl font-serif-prestige font-bold text-brand-900">Publikasi Lowongan Magang / Kerja</h2>
+          <p class="text-xs text-gray-500">Ajukan draf lowongan untuk dikurasi oleh staf unit Career & Internship sebelum diterbitkan ke katalog mahasiswa.</p>
+        </div>
+
+        <!-- Alert Peringatan Validasi Tanggal (PC-01) -->
+        <div id="min-date-alert" class="hidden p-3.5 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl font-medium"></div>
+
+        <form id="form-create-vacancy" class="space-y-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-bold text-gray-700 mb-1">Judul Posisi Lowongan *</label>
+              <input type="text" id="min-posisi" required class="w-full text-xs p-2.5 border border-gray-300 rounded-xl bg-white" placeholder="Contoh: UI/UX Designer Intern">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-gray-700 mb-1">Jenis Kesempatan *</label>
+              <select id="min-jenis" class="w-full text-xs p-2.5 border border-gray-300 rounded-xl bg-white">
+                <option value="Magang Bersertifikat">Magang Bersertifikat</option>
+                <option value="Pekerjaan">Lowongan Pekerjaan Penuh Waktu</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1">Deskripsi Tugas & Tanggung Jawab *</label>
+            <textarea id="min-deskripsi" rows="3" required class="w-full text-xs p-2.5 border border-gray-300 rounded-xl bg-white" placeholder="Jelaskan ruang lingkup tugas, proyek yang dikerjakan, dan lingkungan kerja..."></textarea>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1">Kualifikasi & Keahlian yang Dibutuhkan *</label>
+            <textarea id="min-kualifikasi" rows="2" required class="w-full text-xs p-2.5 border border-gray-300 rounded-xl bg-white" placeholder="Contoh: Mahasiswa semester 5-7, menguasai Figma, pemahaman dasar User Journey..."></textarea>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-bold text-gray-700 mb-1">Mode Kerja</label>
+              <select id="min-mode-kerja" class="w-full text-xs p-2.5 border border-gray-300 rounded-xl bg-white">
+                <option value="On-site">On-site (Di Kantor)</option>
+                <option value="Hybrid">Hybrid (Kombinasi)</option>
+                <option value="Remote">Remote (Kerja Jarak Jauh)</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-gray-700 mb-1">Kota / Lokasi Kantor</label>
+              <input type="text" id="min-kota" class="w-full text-xs p-2.5 border border-gray-300 rounded-xl bg-white" placeholder="Contoh: Malang / Surabaya / Jakarta">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-bold text-gray-700 mb-1">Periode Mulai Pelaksanaan *</label>
+              <input type="date" id="min-periode-mulai" onchange="window.SIMAGA_MIN.validateVacancyDates()" required class="w-full text-xs p-2.5 border border-gray-300 rounded-xl bg-white">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-gray-700 mb-1">Periode Selesai Pelaksanaan *</label>
+              <input type="date" id="min-periode-selesai" onchange="window.SIMAGA_MIN.validateVacancyDates()" required class="w-full text-xs p-2.5 border border-gray-300 rounded-xl bg-white">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-bold text-gray-700 mb-1">Kuota Penerimaan (Mahasiswa) *</label>
+              <input type="number" id="min-kuota" min="1" value="3" required class="w-full text-xs p-2.5 border border-gray-300 rounded-xl bg-white">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-gray-700 mb-1">Batas Akhir Pendaftaran *</label>
+              <input type="date" id="min-deadline" onchange="window.SIMAGA_MIN.validateVacancyDates()" required class="w-full text-xs p-2.5 border border-gray-300 rounded-xl bg-white">
+            </div>
+          </div>
+
+          <div class="p-3 bg-amber-50 rounded-xl border border-amber-200 text-xs text-amber-900">
+            <strong>Status Pengajuan Awal:</strong> Draf akan berstatus <span class="font-bold underline">"Menunggu Verifikasi"</span> dan otomatis diteruskan ke dasbor staf kurasi fakultas.
+          </div>
+
+          <div class="flex justify-end gap-3 pt-4 border-t border-gray-200">
+            <button type="button" onclick="document.getElementById('form-create-vacancy').reset()" class="px-5 py-2.5 text-xs font-bold text-gray-600 hover:text-gray-900">
+              Batal
+            </button>
+            <button type="button" id="btn-submit-vacancy" onclick="window.SIMAGA_MIN.submitNewVacancy()" 
+              class="px-6 py-2.5 bg-brand-800 text-white rounded-xl text-xs font-bold hover:bg-brand-900 shadow-sm transition-colors">
+              Ajukan Lowongan ke Admin
+            </button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- ============================================================================
+         VIEW 7: MITRA INDUSTRI - LOWONGAN SAYA
+         ============================================================================ -->
+    <section id="view-min-lowongan-saya" class="tab-content space-y-6">
+      <div class="flex justify-between items-center bg-white p-6 rounded-2xl border border-gray-200">
+        <div>
+          <span class="badge-pill-academic mb-1.5"><i data-lucide="layers" class="w-3.5 h-3.5 text-brand-800"></i> Dasbor Mitra</span>
+          <h2 class="text-2xl font-bold text-brand-900">Daftar Lowongan Instansi Anda</h2>
+          <p class="text-xs text-gray-500">Lihat status kurasi lowongan (Aktif, Menunggu, Ditolak) dan catatan verifikasi fakultas.</p>
+        </div>
+        <button onclick="window.SIMAGA_ROUTER.navigateTo('min-buat-lowongan')" 
+          class="px-4 py-2.5 bg-brand-800 text-white rounded-xl text-xs font-bold hover:bg-brand-900 transition-colors flex items-center gap-1.5">
+          <i data-lucide="plus" class="w-4 h-4"></i> Buat Lowongan Baru
+        </button>
+      </div>
+
+      <div id="min-my-vacancies-container" class="space-y-3">
+        <!-- Render via min.js -->
+      </div>
+    </section>
+
+    <!-- ============================================================================
+         VIEW 8: MITRA INDUSTRI - REVIEW PELAMAR (UC-02 / PC-09)
+         ============================================================================ -->
+    <section id="view-min-pelamar" class="tab-content space-y-6">
+      <div class="flex justify-between items-center bg-white p-6 rounded-2xl border border-gray-200">
+        <div>
+          <span class="badge-pill-academic mb-1.5"><i data-lucide="users" class="w-3.5 h-3.5 text-brand-800"></i> Evaluasi Kandidat</span>
+          <h2 class="text-2xl font-bold text-brand-900">Peninjauan Berkas Lamaran Mahasiswa</h2>
+          <p class="text-xs text-gray-500">Unduh dokumen pelamar langsung dari Google Drive dan perbarui status tahapan rekrutmen secara transparan.</p>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-gray-50 border-b border-gray-200 text-gray-600 text-[11px] uppercase tracking-wider font-bold">
+                <th class="p-3.5">#</th>
+                <th class="p-3.5">Mahasiswa</th>
+                <th class="p-3.5">Posisi Dilamar</th>
+                <th class="p-3.5">Berkas di Google Drive</th>
+                <th class="p-3.5">Status Seleksi</th>
+                <th class="p-3.5 text-right">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="min-applicants-table-body">
+              <!-- Render via min.js -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================================
+         VIEW 9: ADMIN - DASBOR ANALITIK IKU 1 (UI-05 / UC-12 / UC-14 / UC-15)
+         ============================================================================ -->
+    <section id="view-adm-analitik" class="tab-content space-y-6">
+      
+      <!-- Header & Filter Bar (UI-05) -->
+      <div class="bg-white p-6 rounded-2xl border border-gray-200 space-y-4">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+          <div>
+            <span class="badge-pill-academic mb-1.5"><i data-lucide="bar-chart-3" class="w-3.5 h-3.5 text-brand-800"></i> Executive Dashboard</span>
+            <h2 class="text-2xl font-serif-prestige font-bold text-brand-900">Dasbor Analitik Tracer Study & Capaian IKU 1</h2>
+            <p class="text-xs text-gray-500">Pantau keterisian responden, validasi data anomali, dan capaian IKU 1 FILKOM UB secara real-time.</p>
+          </div>
+          
+          <div class="flex flex-wrap gap-2">
+            <button onclick="window.SIMAGA_ADM.triggerMassReminder()" 
+              class="px-4 py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 shadow-sm">
+              <i data-lucide="mail-plus" class="w-4 h-4"></i> Kirim Pengingat Massal
+            </button>
+            <div class="flex items-center gap-1 bg-gray-50 border border-gray-200 rounded-xl px-2">
+              <select id="adm-export-format" class="text-xs bg-transparent py-2 px-1 text-gray-700 font-semibold focus:outline-none">
+                <option value="xlsx">Format Excel (.xlsx)</option>
+                <option value="pdf">Ringkasan PDF</option>
+              </select>
+              <button onclick="window.SIMAGA_ADM.exportReport()" 
+                class="px-3 py-1.5 bg-brand-800 hover:bg-brand-900 text-white rounded-lg text-xs font-bold transition-colors">
+                Ekspor
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Filter Dropdown Bar (UI-05) -->
+        <div class="pt-3 border-t border-gray-100 grid grid-cols-1 sm:grid-cols-3 gap-3 items-center">
+          <div>
+            <label class="block text-[11px] font-bold text-gray-600 mb-1">Filter Program Studi:</label>
+            <select id="adm-filter-prodi" onchange="window.SIMAGA_ADM.renderAnalyticsDashboard()" 
+              class="w-full text-xs p-2.5 border border-gray-300 rounded-xl bg-white font-medium">
+              <option value="all">Semua Program Studi (Fakultas)</option>
+              <option value="Sistem Informasi">S1 Sistem Informasi</option>
+              <option value="Teknik Informatika">S1 Teknik Informatika</option>
+              <option value="Pendidikan Teknologi Informasi">S1 Pendidikan TI</option>
+              <option value="Teknologi Informasi">S1 Teknologi Informasi</option>
+              <option value="Teknik Komputer">S1 Teknik Komputer</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-[11px] font-bold text-gray-600 mb-1">Filter Angkatan / Tahun Kelulusan:</label>
+            <select id="adm-filter-tahun" onchange="window.SIMAGA_ADM.renderAnalyticsDashboard()" 
+              class="w-full text-xs p-2.5 border border-gray-300 rounded-xl bg-white font-medium">
+              <option value="all">Semua Tahun Kelulusan</option>
+              <option value="2026">2026</option>
+              <option value="2025">2025</option>
+              <option value="2024">2024</option>
+              <option value="2023">2023</option>
+            </select>
+          </div>
+          <div class="flex items-end">
+            <button onclick="window.SIMAGA_ADM.renderAnalyticsDashboard()" 
+              class="w-full py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-xl text-xs font-bold transition-colors">
+              Terapkan Filter
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3 Kartu Metrik Utama (UI-05) -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+        
+        <div class="card-academic p-6 border-l-4 border-l-emerald-700">
+          <div class="flex justify-between items-start">
+            <span class="text-xs font-bold text-gray-500 uppercase tracking-wider">Tingkat Keterisian</span>
+            <span class="p-2 bg-emerald-50 text-emerald-800 rounded-xl"><i data-lucide="users-round" class="w-4 h-4"></i></span>
+          </div>
+          <div class="text-3xl font-extrabold text-brand-900 mt-2" id="metric-response-rate">0%</div>
+          <p class="text-[11px] text-gray-500 mt-1" id="metric-total-responden">0 dari 0 alumni</p>
+        </div>
+
+        <div class="card-academic p-6 border-l-4 border-l-blue-700">
+          <div class="flex justify-between items-start">
+            <span class="text-xs font-bold text-gray-500 uppercase tracking-wider">Rata-rata Masa Tunggu</span>
+            <span class="p-2 bg-blue-50 text-blue-800 rounded-xl"><i data-lucide="timer" class="w-4 h-4"></i></span>
+          </div>
+          <div class="text-3xl font-extrabold text-brand-900 mt-2" id="metric-avg-masa-tunggu">0.0 Bulan</div>
+          <p class="text-[11px] text-gray-500 mt-1">Hingga mendapat pekerjaan pertama</p>
+        </div>
+
+        <div class="card-academic p-6 border-l-4 border-l-gold-500">
+          <div class="flex justify-between items-start">
+            <span class="text-xs font-bold text-gray-500 uppercase tracking-wider">Capaian IKU 1</span>
+            <span class="p-2 bg-amber-50 text-gold-600 rounded-xl"><i data-lucide="award" class="w-4 h-4"></i></span>
+          </div>
+          <div class="text-3xl font-extrabold text-brand-900 mt-2" id="metric-capaian-iku1">0%</div>
+          <p class="text-[11px] text-gray-500 mt-1">Bekerja Layak, Wirausaha, Studi Lanjut</p>
+        </div>
+
+      </div>
+
+      <!-- Grafik Batang Sebaran Karier Lulusan (UI-05) -->
+      <div class="bg-white p-6 rounded-2xl border border-gray-200 space-y-4">
+        <div class="flex justify-between items-center">
+          <h3 class="text-sm font-bold text-gray-900 flex items-center gap-2">
+            <i data-lucide="bar-chart-2" class="w-4 h-4 text-emerald-800"></i> Sebaran Jenis Karier Lulusan (Data Tervalidasi)
+          </h3>
+          <span class="text-[11px] text-gray-400">Parameter Akreditasi BAN-PT & IKU</span>
+        </div>
+        <div class="h-64 w-full">
+          <canvas id="adm-career-chart"></canvas>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ============================================================================
+         VIEW 10: ADMIN - KURASI LOWONGAN MITRA (UC-11 / PC-08)
+         ============================================================================ -->
+    <section id="view-adm-kurasi" class="tab-content space-y-6">
+      <div class="flex justify-between items-center bg-white p-6 rounded-2xl border border-gray-200">
+        <div>
+          <span class="badge-pill-academic mb-1.5"><i data-lucide="check-square" class="w-3.5 h-3.5 text-brand-800"></i> Kurasi Fakultas</span>
+          <h2 class="text-2xl font-bold text-brand-900">Verifikasi Pengajuan Lowongan Mitra Industri</h2>
+          <p class="text-xs text-gray-500">Periksa beban tugas, relevansi kompetensi, dan berikan persetujuan sebelum dipublikasikan ke mahasiswa.</p>
+        </div>
+      </div>
+
+      <div id="adm-curation-container" class="space-y-4">
+        <!-- Render via adm.js -->
+      </div>
+    </section>
+
+    <!-- ============================================================================
+         VIEW 11: ADMIN - VERIFIKASI RESPONDEN & DETEKSI ANOMALI (UC-13 / PC-07)
+         ============================================================================ -->
+    <section id="view-adm-verifikasi" class="tab-content space-y-6">
+      <div class="flex justify-between items-center bg-white p-6 rounded-2xl border border-gray-200">
+        <div>
+          <span class="badge-pill-academic mb-1.5"><i data-lucide="shield-alert" class="w-3.5 h-3.5 text-brand-800"></i> Integritas Data IKU 1</span>
+          <h2 class="text-2xl font-bold text-brand-900">Verifikasi Responden & Penanda Anomali Data</h2>
+          <p class="text-xs text-gray-500">Sistem otomatis menandai isian yang tidak lazim (auto-flagging) untuk diklarifikasi ke alumni.</p>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-gray-50 border-b border-gray-200 text-gray-600 text-[11px] uppercase tracking-wider font-bold">
+                <th class="p-3.5">#</th>
+                <th class="p-3.5">Nomor Referensi</th>
+                <th class="p-3.5">Alumni (NIM / Prodi)</th>
+                <th class="p-3.5">Kondisi Karier</th>
+                <th class="p-3.5">Gaji & Masa Tunggu</th>
+                <th class="p-3.5">Status Validasi</th>
+                <th class="p-3.5 text-right">Aksi Verifikasi</th>
+              </tr>
+            </thead>
+            <tbody id="adm-respondents-table-body">
+              <!-- Render via adm.js -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================================
+         VIEW 12: TENTANG KAMI
+         ============================================================================ -->
+    <section id="view-tentang" class="tab-content space-y-8">
+      <div class="bg-white rounded-3xl border border-gray-200 p-8 sm:p-12 space-y-6 max-w-4xl mx-auto">
+        <span class="badge-pill-academic"><i data-lucide="info" class="w-3.5 h-3.5 text-brand-800"></i> Informasi Institusi</span>
+        <h2 class="text-3xl font-serif-prestige font-bold text-brand-900">Tentang SIMAGA FILKOM UB</h2>
+        
+        <p class="text-sm text-gray-600 leading-relaxed">
+          <strong>SIMAGA (Sistem Informasi Magang dan Alumni)</strong> merupakan solusi perangkat lunak terintegrasi yang dikembangkan berdasarkan spesifikasi teknis mata kuliah Rekayasa Sistem Informasi (Kelompok 8), Program Studi Sistem Informasi, Fakultas Ilmu Komputer, Universitas Brawijaya Malang (2026).
+        </p>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-gray-100 text-xs">
+          <div class="p-4 bg-cream-50 rounded-2xl border border-cream-200">
+            <h4 class="font-bold text-brand-900 mb-1">Dosen Pengampu:</h4>
+            <p class="text-gray-700">Lia Ninda Safitri, S.Kom.</p>
+          </div>
+          <div class="p-4 bg-cream-50 rounded-2xl border border-cream-200">
+            <h4 class="font-bold text-brand-900 mb-1">Asisten Praktikum:</h4>
+            <p class="text-gray-700">Divana Mutiara Zaquina (245150400111053)<br>Maya Audina (245150400111028)</p>
+          </div>
+        </div>
+
+        <div class="p-4 bg-emerald-50 rounded-2xl border border-emerald-200 text-xs text-emerald-950">
+          <h4 class="font-bold mb-1">Tim Pengembang (Kelompok 8):</h4>
+          <ul class="list-disc list-inside space-y-1 text-emerald-900">
+            <li><strong>Nicholas Ravael Ondihon Gultom (NG)</strong> — NIM. 255150400111068</li>
+            <li><strong>Muhammad Ushaim Mukmin Kasim (MK)</strong> — NIM. 255150407111097</li>
+            <li><strong>Yaffa Anindya Oktaviani (YA)</strong> — NIM. 255150407111077</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ==============================================================================
+       FOOTER (ACADEMIC PRESTIGE)
+       ============================================================================== -->
+  <footer class="bg-brand-950 text-white pt-12 pb-8 border-t border-brand-900 mt-auto">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-8 text-xs">
+        <div class="space-y-3">
+          <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-lg bg-emerald-800 text-gold-500 flex items-center justify-center font-bold">
+              <i data-lucide="graduation-cap" class="w-5 h-5"></i>
+            </div>
+            <span class="text-base font-extrabold tracking-tight">SIMAGA</span>
+          </div>
+          <p class="text-emerald-200/80 leading-relaxed">
+            Sistem Informasi Magang dan Alumni Fakultas Ilmu Komputer Universitas Brawijaya. Solusi terpadu kemitraan industri dan pelaporan IKU 1.
+          </p>
+        </div>
+
+        <div>
+          <h4 class="font-bold text-white uppercase tracking-wider mb-3">Layanan Utama</h4>
+          <ul class="space-y-2 text-emerald-200/70">
+            <li><a href="#mhs-lowongan" class="hover:text-white">Katalog Magang Bersertifikat</a></li>
+            <li><a href="#alm-lowongan" class="hover:text-white">Bursa Kerja Alumni (Fresh Grad)</a></li>
+            <li><a href="#alm-tracer" class="hover:text-white">Kuesioner Tracer Study Dinamis</a></li>
+            <li><a href="#min-buat-lowongan" class="hover:text-white">Portal Kemitraan Mitra Industri</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 class="font-bold text-white uppercase tracking-wider mb-3">Arsitektur Cloud</h4>
+          <ul class="space-y-2 text-emerald-200/70">
+            <li>Google Sheets API (11 Tab Relasional)</li>
+            <li>Google Drive Cloud Storage (PDF Lamaran)</li>
+            <li>Google Apps Script Serverless Web App</li>
+            <li>Enkripsi & QR Code Verifikasi Sah</li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 class="font-bold text-white uppercase tracking-wider mb-3">Kontak Institusi</h4>
+          <p class="text-emerald-200/70 leading-relaxed">
+            Gedung F FILKOM UB, Jl. Veteran No. 8, Ketawanggede, Lowokwaru, Kota Malang, Jawa Timur 65145<br>
+            Surel: <span class="text-white">career.filkom@ub.ac.id</span>
+          </p>
+        </div>
+      </div>
+
+      <div class="pt-8 border-t border-brand-900/80 flex flex-col sm:flex-row justify-between items-center text-[11px] text-emerald-300/60 gap-4">
+        <p>&copy; 2026 Fakultas Ilmu Komputer Universitas Brawijaya. Seluruh Hak Cipta Dilindungi.</p>
+        <p>Developed for Praktikum Rekayasa Sistem Informasi B - Kelompok 8</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ==============================================================================
+       MODALS
+       ============================================================================== -->
+
+  <!-- MODAL LOGIN (UC-16) -->
+  <div id="modal-login" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+    <div class="bg-white rounded-3xl max-w-md w-full p-8 shadow-2xl relative space-y-6">
+      <button onclick="document.getElementById('modal-login').classList.add('hidden')" 
+        class="absolute top-5 right-5 text-gray-400 hover:text-gray-700">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+
+      <div class="text-center space-y-1">
+        <div class="w-12 h-12 rounded-2xl bg-brand-800 text-gold-500 mx-auto flex items-center justify-center shadow-md">
+          <i data-lucide="lock" class="w-6 h-6"></i>
+        </div>
+        <h3 class="text-xl font-bold text-brand-900 pt-2">Masuk ke SIMAGA</h3>
+        <p class="text-xs text-gray-500">Gunakan akun UB atau kredensial kemitraan Anda</p>
+      </div>
+
+      <!-- Quick Demo Account Selector (Sangat berguna untuk reviewer & penguji praktikum) -->
+      <div class="bg-cream-50 p-3 rounded-2xl border border-cream-300 space-y-1.5">
+        <span class="text-[10px] font-bold uppercase tracking-wider text-gray-500 block">Pilih Akun Demo (1-Klik):</span>
+        <div class="grid grid-cols-2 gap-1.5 text-[11px]">
+          <button type="button" class="btn-demo-login p-1.5 bg-white border border-gray-200 rounded-lg text-left hover:border-brand-800 transition-colors"
+            data-id="bambang@student.ub.ac.id" data-pass="bambang123">
+            <span class="font-bold text-emerald-800 block">Mahasiswa (MHS)</span>
+            <span class="text-[10px] text-gray-500">Bambang Prakoso</span>
+          </button>
+          <button type="button" class="btn-demo-login p-1.5 bg-white border border-gray-200 rounded-lg text-left hover:border-brand-800 transition-colors"
+            data-id="yaya@alumni.ub.ac.id" data-pass="yaya123">
+            <span class="font-bold text-blue-800 block">Alumni (ALM)</span>
+            <span class="text-[10px] text-gray-500">Yaffa Anindya</span>
+          </button>
+          <button type="button" class="btn-demo-login p-1.5 bg-white border border-gray-200 rounded-lg text-left hover:border-brand-800 transition-colors"
+            data-id="carmen@techindo.com" data-pass="mitra123">
+            <span class="font-bold text-purple-800 block">Mitra (MIN)</span>
+            <span class="text-[10px] text-gray-500">Carmenita (Tech Indo)</span>
+          </button>
+          <button type="button" class="btn-demo-login p-1.5 bg-white border border-gray-200 rounded-lg text-left hover:border-brand-800 transition-colors"
+            data-id="dina@ub.ac.id" data-pass="admin123">
+            <span class="font-bold text-amber-800 block">Admin (ADM)</span>
+            <span class="text-[10px] text-gray-500">Dina Safitri, S.Kom.</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Alert Galat Kredensial / Akun Nonaktif -->
+      <div id="login-error-alert" class="hidden p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl font-medium"></div>
+
+      <form id="form-login" class="space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-gray-700 mb-1">Surel UB / NIM / Username</label>
+          <input type="text" id="login-identifier" required placeholder="bambang@student.ub.ac.id" 
+            class="w-full text-xs p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-brand-800 focus:outline-none">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-gray-700 mb-1">Kata Sandi</label>
+          <input type="password" id="login-password" required placeholder="••••••••" 
+            class="w-full text-xs p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-brand-800 focus:outline-none">
+        </div>
+
+        <button type="submit" id="btn-submit-login" 
+          class="w-full py-3 bg-brand-800 text-white rounded-xl text-xs font-bold hover:bg-brand-900 transition-colors shadow-md">
+          Masuk ke Akun
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL DETAIL LOWONGAN -->
+  <div id="modal-vacancy-detail" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+    <div class="bg-white rounded-3xl max-w-2xl w-full p-8 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+      <button onclick="document.getElementById('modal-vacancy-detail').classList.add('hidden')" class="absolute top-5 right-5 text-gray-400 hover:text-gray-700">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+      <div id="vacancy-detail-content"></div>
+    </div>
+  </div>
+
+  <!-- MODAL PENDAFTARAN MAGANG & UNGGAH BERKAS (UI-03 / UC-04 / UC-05) -->
+  <div id="modal-apply-internship" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+    <div class="bg-white rounded-3xl max-w-2xl w-full p-8 shadow-2xl relative max-h-[90vh] overflow-y-auto space-y-6">
+      <button onclick="document.getElementById('modal-apply-internship').classList.add('hidden')" class="absolute top-5 right-5 text-gray-400 hover:text-gray-700">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+
+      <div>
+        <span class="badge-pill-academic mb-1.5"><i data-lucide="file-up" class="w-3.5 h-3.5 text-brand-800"></i> Pendaftaran Magang Bersertifikat</span>
+        <h3 id="apply-vacancy-title" class="text-xl font-bold text-brand-900">Judul Posisi</h3>
+        <p id="apply-vacancy-subtitle" class="text-xs text-gray-500">Mitra Industri • Periode</p>
+      </div>
+
+      <!-- Petunjuk Berkas PDF -->
+      <div class="p-4 bg-emerald-50 rounded-2xl border border-emerald-200 text-xs text-emerald-950 space-y-1">
+        <div class="font-bold flex items-center gap-1.5 text-emerald-900">
+          <i data-lucide="shield-check" class="w-4 h-4 text-emerald-700"></i> Ketentuan Wajib Berkas Administrasi:
+        </div>
+        <p>Wajib mengunggah 3 berkas dalam format <span class="font-bold">.pdf</span> dengan ukuran masing-masing maksimal <span class="font-bold">5 MB (5120 KB)</span>. Dokumen akan langsung tersimpan di Google Drive <code>SIMAGA_Storage</code>.</p>
+      </div>
+
+      <!-- 3 DROPZONES (CV, TRANSKRIP, SURAT REKOMENDASI) -->
+      <div class="space-y-3">
+        <!-- 1. CV -->
+        <div>
+          <label class="block text-xs font-bold text-gray-700 mb-1">1. Curriculum Vitae (CV) Terbaru *</label>
+          <div id="dropzone-cv"></div>
+        </div>
+
+        <!-- 2. Transkrip Nilai -->
+        <div>
+          <label class="block text-xs font-bold text-gray-700 mb-1">2. Transkrip Nilai Akademik Terbaru *</label>
+          <div id="dropzone-transkrip"></div>
+        </div>
+
+        <!-- 3. Surat Rekomendasi Fakultas -->
+        <div>
+          <label class="block text-xs font-bold text-gray-700 mb-1">3. Surat Rekomendasi Fakultas *</label>
+          <div id="dropzone-rekomendasi"></div>
+        </div>
+      </div>
+
+      <!-- Checkbox Konfirmasi (UI-03) -->
+      <label class="flex items-start gap-2.5 p-3.5 bg-gray-50 rounded-xl border border-gray-200 text-xs cursor-pointer">
+        <input type="checkbox" id="apply-confirm-checkbox" class="mt-0.5 accent-brand-800">
+        <span class="text-gray-700 font-medium">Saya menyatakan bahwa seluruh informasi dan 3 berkas PDF yang saya lampirkan adalah valid, benar, dan dapat dipertanggungjawabkan kepada pihak fakultas serta mitra industri.</span>
+      </label>
+
+      <div class="flex justify-end gap-3 pt-3 border-t border-gray-100">
+        <button onclick="document.getElementById('modal-apply-internship').classList.add('hidden')" class="px-4 py-2 text-xs font-bold text-gray-600 hover:text-gray-900">
+          Batal
+        </button>
+        <button id="btn-submit-apply" onclick="window.SIMAGA_MHS.submitApplication()" 
+          class="px-6 py-2.5 bg-brand-800 hover:bg-brand-900 text-white rounded-xl text-xs font-extrabold shadow-md transition-colors flex items-center gap-2">
+          <i data-lucide="send" class="w-4 h-4"></i> Kirim Lamaran ke Google Drive
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL SELEKSI PELAMAR (MITRA INDUSTRI) -->
+  <div id="modal-review-applicant" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-8 shadow-2xl relative space-y-6">
+      <button onclick="document.getElementById('modal-review-applicant').classList.add('hidden')" class="absolute top-5 right-5 text-gray-400 hover:text-gray-700">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+
+      <div>
+        <span class="text-[11px] font-bold px-2 py-0.5 bg-gray-100 rounded text-gray-600" id="review-app-id">REG-001</span>
+        <h3 id="review-candidate-name" class="text-lg font-bold text-gray-900 mt-1">Nama Mahasiswa</h3>
+        <p id="review-position-name" class="text-xs text-emerald-800 font-semibold">Posisi Magang</p>
+      </div>
+
+      <!-- Tautan Berkas Google Drive -->
+      <div class="space-y-2">
+        <label class="block text-xs font-bold text-gray-700">Berkas Pelamar di Google Drive:</label>
+        <div id="review-berkas-list" class="space-y-2"></div>
+      </div>
+
+      <!-- Form Update Status & Catatan Seleksi -->
+      <div class="space-y-3 pt-2 border-t border-gray-100">
+        <div>
+          <label class="block text-xs font-bold text-gray-700 mb-1">Perbarui Tahapan Seleksi Pelamar: *</label>
+          <select id="review-status-select" class="w-full text-xs p-2.5 border border-gray-300 rounded-xl bg-white font-semibold">
+            <option value="pemeriksaan_berkas">1. Pemeriksaan Berkas</option>
+            <option value="wawancara">2. Lolos Berkas & Tahap Wawancara</option>
+            <option value="diterima">3. Diterima Magang Bersertifikat</option>
+            <option value="ditolak">4. Belum Berhasil (Ditolak)</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-gray-700 mb-1">Catatan Seleksi / Jadwal Wawancara:</label>
+          <textarea id="review-catatan" rows="3" class="w-full text-xs p-2.5 border border-gray-300 rounded-xl bg-white" placeholder="Contoh: Wawancara via Zoom dijadwalkan 10 Des 2026 pk 10.00 WIB (Link: meet.google.com/xxx-yyy-zzz)..."></textarea>
+        </div>
+      </div>
+
+      <div class="flex justify-end gap-2 pt-2 border-t border-gray-100">
+        <button onclick="document.getElementById('modal-review-applicant').classList.add('hidden')" class="px-4 py-2 text-xs font-bold text-gray-600">
+          Tutup
+        </button>
+        <button onclick="window.SIMAGA_MIN.saveSelectionUpdate()" class="px-5 py-2 bg-brand-800 text-white rounded-xl text-xs font-bold hover:bg-brand-900">
+          Simpan & Notifikasi Pelamar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL PENGATURAN GOOGLE WORKSPACE (APPS SCRIPT / SERVICE ACCOUNT) -->
+  <div id="modal-config" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-8 shadow-2xl relative space-y-6">
+      <button onclick="document.getElementById('modal-config').classList.add('hidden')" class="absolute top-5 right-5 text-gray-400 hover:text-gray-700">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+
+      <div class="space-y-1">
+        <div class="w-10 h-10 rounded-xl bg-emerald-100 text-brand-800 flex items-center justify-center">
+          <i data-lucide="cloud-cog" class="w-5 h-5"></i>
+        </div>
+        <h3 class="text-lg font-bold text-brand-900 pt-1">Konfigurasi Google Workspace</h3>
+        <p class="text-xs text-gray-500">Atur integrasi langsung ke Google Sheets (11 Tab) dan Google Drive Storage.</p>
+      </div>
+
+      <div class="space-y-4 text-xs">
+        <div>
+          <label class="block font-bold text-gray-700 mb-1">Mode Eksekusi:</label>
+          <select id="cfg-mode" class="w-full p-2.5 border border-gray-300 rounded-xl bg-white font-medium">
+            <option value="auto">Auto / Dual Engine (Prioritas Serverless Apps Script)</option>
+            <option value="apps_script">Direct Google Apps Script Web App (Zero Server)</option>
+            <option value="node">Node.js Express Backend</option>
+            <option value="mock">Offline / Mock Local Storage Demo</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block font-bold text-gray-700 mb-1">URL Google Apps Script Web App:</label>
+          <input type="url" id="cfg-apps-script-url" placeholder="https://script.google.com/macros/s/AKfycbx.../exec" 
+            class="w-full p-2.5 border border-gray-300 rounded-xl font-mono text-[11px]">
+          <span class="text-[10px] text-gray-500 block mt-1">Dapatkan URL ini setelah mempublikasikan <code>google-apps-script/Code.gs</code> sebagai Web App.</span>
+        </div>
+
+        <div>
+          <label class="block font-bold text-gray-700 mb-1">Google Spreadsheet ID (Opsional):</label>
+          <input type="text" id="cfg-spreadsheet-id" placeholder="1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms" 
+            class="w-full p-2.5 border border-gray-300 rounded-xl font-mono text-[11px]">
+        </div>
+      </div>
+
+      <div class="p-3 bg-emerald-50 rounded-xl border border-emerald-200 text-xs text-emerald-900">
+        💡 <strong>Tip Cepat:</strong> Seluruh tab Google Sheets dan folder Google Drive dapat di-generate otomatis dengan menjalankan fungsi <code>setupDatabase()</code> di Apps Script editor!
+      </div>
+
+      <div class="flex justify-end gap-2 pt-2 border-t border-gray-100">
+        <button onclick="document.getElementById('modal-config').classList.add('hidden')" class="px-4 py-2 text-xs font-bold text-gray-600">
+          Batal
+        </button>
+        <button onclick="window.SIMAGA_ROUTER.saveConfig()" class="px-5 py-2 bg-brand-800 text-white rounded-xl text-xs font-bold hover:bg-brand-900">
+          Simpan Pengaturan
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- APPLICATION SCRIPTS -->
+  <script src="/js/data-mock.js"></script>
+  <script src="/js/api.js"></script>
+  <script src="/js/pdf-generator.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/mhs.js"></script>
+  <script src="/js/alm.js"></script>
+  <script src="/js/min.js"></script>
+  <script src="/js/adm.js"></script>
+  <script src="/js/app.js"></script>
+
+</body>
+</html>

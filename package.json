@@ -1,0 +1,34 @@
+{
+  "name": "simaga-filkom-ub",
+  "version": "1.0.0",
+  "description": "Sistem Informasi Magang dan Alumni (Tracer Study) FILKOM UB dengan Backend Google Sheets & Google Drive",
+  "main": "server/server.js",
+  "scripts": {
+    "start": "node server/server.js",
+    "dev": "node server/server.js",
+    "init-sheets": "node server/scripts/init_sheets.js"
+  },
+  "keywords": [
+    "simaga",
+    "filkom-ub",
+    "google-sheets",
+    "google-drive",
+    "tracer-study",
+    "magang-bersertifikat"
+  ],
+  "author": "Kelompok 8 Rekayasa Sistem Informasi FILKOM UB",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "googleapis": "^144.0.0",
+    "multer": "^1.4.5-lts.1",
+    "pdfkit": "^0.16.0",
+    "qrcode": "^1.5.4",
+    "xlsx": "^0.18.5"
+  }
+}

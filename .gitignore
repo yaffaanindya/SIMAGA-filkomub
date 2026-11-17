@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+
+# Environment variables (RAHASIA - jangan di-upload!)
+.env
+.env.local
+.env.production
+
+# Google credentials (RAHASIA!)
+server/config/credentials.json
+server/config/service-account.json
+*.json.key
+
+# Data persisten lokal (akan dipakai mock di Render)
+server/data/simaga_db.json
+
+# Tools / runtime lokal (tidak perlu di deploy)
+tools/
+
+# File upload temporary
+server/uploads/temp/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# IDE
+.vscode/
+.idea/
