@@ -203,7 +203,7 @@ window.SIMAGA_ADM = (function() {
     tableBody.innerHTML = list.map((item, idx) => {
       const al = item.alumni || {};
       const j = item.data_jawaban_parsed || {};
-      const isAnomali = item.is_anomali === true || item.is_anomali === 'TRUE';
+      const isAnomali = (item.is_anomali === true || item.is_anomali === 'TRUE') && item.status_validasi !== 'tervalidasi';
       const isVerified = item.status_validasi === 'tervalidasi';
 
       let statusPill = '';

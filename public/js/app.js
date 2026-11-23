@@ -14,6 +14,11 @@ window.SIMAGA_ROUTER = (function() {
     window.addEventListener('hashchange', handleHashChange);
     loadNotifications();
 
+    // Polling notifikasi setiap 30 detik (hanya saat user login)
+    setInterval(() => {
+      if (window.SIMAGA_AUTH.isAuthenticated()) loadNotifications();
+    }, 30000);
+
     // Inisialisasi ikon Lucide
     if (window.lucide) {
       window.lucide.createIcons();
@@ -145,6 +150,18 @@ window.SIMAGA_ROUTER = (function() {
     const user = window.SIMAGA_AUTH.getUser();
     if (!user) return;
 
+    // Tampilkan label role di header dropdown
+    const roleLabel = document.getElementById('notif-dropdown-role-label');
+    if (roleLabel) {
+      const roleMap = {
+        Mahasiswa: 'Notifikasi Mahasiswa',
+        Alumni: 'Notifikasi Alumni',
+        MitraIndustri: 'Notifikasi Mitra',
+        Admin: 'Notifikasi Admin'
+      };
+      roleLabel.textContent = roleMap[user.role] || user.role;
+    }
+
     const res = await window.SIMAGA_API.getNotifications(user.id_user);
     const rawNotifs = res.data || [];
 
@@ -159,12 +176,18 @@ window.SIMAGA_ROUTER = (function() {
       }
     });
 
+    // Urutkan: belum dibaca dulu, lalu terbaru
+    notifs.sort((a, b) => {
+      if (a.is_dibaca !== b.is_dibaca) return a.is_dibaca ? 1 : -1;
+      return (b.tanggal_kirim || '').localeCompare(a.tanggal_kirim || '');
+    });
+
     const unread = notifs.filter(n => !n.is_dibaca);
 
     const badge = document.getElementById('notif-unread-badge');
     if (badge) {
       if (unread.length > 0) {
-        badge.textContent = unread.length;
+        badge.textContent = unread.length > 9 ? '9+' : unread.length;
         badge.classList.remove('hidden');
       } else {
         badge.classList.add('hidden');
@@ -174,18 +197,45 @@ window.SIMAGA_ROUTER = (function() {
     const container = document.getElementById('notif-dropdown-list');
     if (container) {
       if (notifs.length === 0) {
-        container.innerHTML = '<p class="text-xs text-gray-400 p-4 text-center">Tidak ada notifikasi baru.</p>';
+        container.innerHTML = `
+          <div class="p-6 text-center text-gray-400">
+            <i data-lucide="bell-off" class="w-8 h-8 mx-auto mb-2 text-gray-300"></i>
+            <p class="text-xs font-semibold">Belum ada notifikasi</p>
+            <p class="text-[11px] mt-0.5">Notifikasi akan muncul saat ada update untukmu</p>
+          </div>`;
+        if (window.lucide) window.lucide.createIcons();
       } else {
-        container.innerHTML = notifs.map(n => `
-          <div onclick="window.SIMAGA_ROUTER.markNotifRead('${n.id_notifikasi}')" 
-            class="p-3 border-b border-gray-100 hover:bg-gray-50 cursor-pointer text-xs ${n.is_dibaca ? 'opacity-70' : 'bg-emerald-50/40'}">
-            <div class="flex items-center justify-between mb-1">
-              <span class="font-bold text-gray-900">${n.judul}</span>
-              <span class="text-[10px] text-gray-400">${n.tanggal_kirim.split(' ')[0]}</span>
-            </div>
-            <p class="text-gray-600">${n.pesan}</p>
-          </div>
-        `).join('');
+        // Ikon per jenis notifikasi
+        const iconMap = {
+          pendaftaran: 'file-check-2',
+          status_seleksi: 'refresh-cw',
+          kurasi: 'shield-check',
+          tracer_reminder: 'clipboard-list',
+          pengumuman: 'megaphone',
+          lamaran_kerja: 'briefcase',
+          default: 'bell'
+        };
+        container.innerHTML = notifs.map(n => {
+          const icon = iconMap[n.jenis] || iconMap.default;
+          const isUnread = !n.is_dibaca;
+          const tgl = (n.tanggal_kirim || '').split(' ')[0];
+          return `
+            <div onclick="window.SIMAGA_ROUTER.markNotifRead('${n.id_notifikasi}')"
+              class="p-3 hover:bg-gray-50 cursor-pointer transition-colors flex gap-3 ${isUnread ? 'bg-emerald-50/50 border-l-2 border-brand-800' : ''}">
+              <div class="w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center ${isUnread ? 'bg-brand-100 text-brand-800' : 'bg-gray-100 text-gray-500'}">
+                <i data-lucide="${icon}" class="w-4 h-4"></i>
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center justify-between gap-2 mb-0.5">
+                  <span class="text-xs font-bold text-gray-900 truncate">${n.judul}</span>
+                  <span class="text-[10px] text-gray-400 shrink-0">${tgl}</span>
+                </div>
+                <p class="text-xs text-gray-600 leading-relaxed">${n.pesan}</p>
+                ${isUnread ? '<span class="text-[10px] text-brand-700 font-semibold mt-0.5 block">● Belum dibaca</span>' : ''}
+              </div>
+            </div>`;
+        }).join('');
+        if (window.lucide) window.lucide.createIcons();
       }
     }
   }
@@ -290,6 +340,7 @@ window.SIMAGA_ROUTER = (function() {
       if (res.status === 'success') {
         document.getElementById('modal-login')?.classList.add('hidden');
         updateUIForAuth();
+        loadNotifications(); // Muat notifikasi sesuai akun yang baru login
 
         // Redirect ke dasbor peran pengguna (UC-16 / Point 10)
         const user = res.data.user;
