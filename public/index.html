@@ -271,8 +271,8 @@
               <p>1. Masuk ke menu <strong>Katalog Magang</strong> dan telusuri lowongan yang sesuai kriteria minat Anda.</p>
               <p>2. Klik tombol <strong>Daftar Magang</strong> untuk membuka formulir pendaftaran administrasi (UI-03).</p>
               <p>3. Unggah 3 berkas persyaratan wajib (.pdf maksimal 5 MB): <em>Curriculum Vitae (CV)</em>, <em>Transkrip Nilai Akademik Terbaru</em>, dan <em>Surat Rekomendasi Fakultas</em>.</p>
-              <p>4. Centang persetujuan keabsahan berkas, lalu klik <strong>Kirim Lamaran ke Google Drive</strong>.</p>
-              <p>5. Berkas akan otomatis tersimpan di folder Google Drive cloud dan status dapat dipantau di menu <strong>Riwayat Lamaran Saya</strong>.</p>
+              <p>4. Centang persetujuan keabsahan berkas, lalu klik <strong>Ajukan Lamaran</strong>.</p>
+              <p>5. Berkas akan otomatis tersimpan di folder Google Drive cloud dan status dapat dipantau di menu <strong>Riwayat Lamaran</strong>.</p>
             </div>
           </details>
 
@@ -413,7 +413,7 @@
         
         <div>
           <h2 class="text-2xl font-bold text-brand-900">Pendaftaran Magang Bersertifikat</h2>
-          <p class="text-xs text-gray-500 mt-1">Kirimkan berkas administrasi Anda langsung ke Google Drive Cloud Storage resmi SIMAGA FILKOM UB.</p>
+          <p class="text-xs text-gray-500 mt-1">Lengkapi berkas persyaratan administrasi untuk melamar pada lowongan magang bersertifikat.</p>
         </div>
 
         <!-- Vacancy Summary Box (Wireframe UI-03) -->
@@ -520,7 +520,7 @@
             Batal
           </button>
           <button type="button" id="btn-wireframe-submit" onclick="window.SIMAGA_MHS.submitWireframeApplication()" class="px-6 py-2.5 text-xs font-bold text-white bg-brand-800 hover:bg-brand-900 rounded-xl shadow-md transition-all flex items-center gap-2">
-            <i data-lucide="send" class="w-4 h-4"></i> Kirim Lamaran ke Google Drive
+            <i data-lucide="send" class="w-4 h-4"></i> Ajukan Lamaran
           </button>
         </div>
 
@@ -1262,8 +1262,8 @@
             <p>1. Masuk ke menu <strong>Katalog Magang</strong> dan telusuri lowongan yang sesuai kriteria minat Anda.</p>
             <p>2. Klik tombol <strong>Daftar Magang</strong> untuk membuka formulir pendaftaran administrasi (UI-03).</p>
             <p>3. Unggah 3 berkas persyaratan wajib (.pdf maksimal 5 MB): <em>Curriculum Vitae (CV)</em>, <em>Transkrip Nilai Akademik Terbaru</em>, dan <em>Surat Rekomendasi Fakultas</em>.</p>
-            <p>4. Centang persetujuan keabsahan berkas, lalu klik <strong>Kirim Lamaran ke Google Drive</strong>.</p>
-            <p>5. Berkas akan otomatis tersimpan di folder Google Drive cloud dan status dapat dipantau di menu <strong>Riwayat Lamaran Saya</strong>.</p>
+            <p>4. Centang persetujuan keabsahan berkas, lalu klik <strong>Ajukan Lamaran</strong>.</p>
+            <p>5. Berkas akan otomatis tersimpan di folder Google Drive cloud dan status dapat dipantau di menu <strong>Riwayat Lamaran</strong>.</p>
           </div>
         </details>
 
@@ -1502,7 +1502,7 @@
         </button>
         <button id="btn-submit-apply" onclick="window.SIMAGA_MHS.submitApplication()" 
           class="px-6 py-2.5 bg-brand-800 hover:bg-brand-900 text-white rounded-xl text-xs font-extrabold shadow-md transition-colors flex items-center gap-2">
-          <i data-lucide="send" class="w-4 h-4"></i> Kirim Lamaran ke Google Drive
+          <i data-lucide="send" class="w-4 h-4"></i> Ajukan Lamaran
         </button>
       </div>
     </div>
@@ -1523,7 +1523,7 @@
 
       <!-- Tautan Berkas Google Drive -->
       <div class="space-y-2">
-        <label class="block text-xs font-bold text-gray-700">Berkas Pelamar di Google Drive:</label>
+        <label class="block text-xs font-bold text-gray-700">Berkas Pelamar:</label>
         <div id="review-berkas-list" class="space-y-2"></div>
       </div>
 
@@ -1611,9 +1611,9 @@
     </div>
   </div>
 
-  <!-- MODAL LAMAR PEKERJAAN ALUMNI (Point 7) -->
+  <!-- MODAL LAMAR PEKERJAAN ALUMNI (Point 7 & Upload Berkas Mandiri) -->
   <div id="modal-apply-job" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-    <div class="bg-white rounded-3xl max-w-lg w-full p-8 shadow-2xl relative space-y-6">
+    <div class="bg-white rounded-3xl max-w-2xl w-full p-8 shadow-2xl relative max-h-[90vh] overflow-y-auto space-y-6">
       <button onclick="document.getElementById('modal-apply-job').classList.add('hidden')" class="absolute top-5 right-5 text-gray-400 hover:text-gray-700">
         <i data-lucide="x" class="w-5 h-5"></i>
       </button>
@@ -1631,12 +1631,118 @@
         <p>Data profil akademik alumni FILKOM UB Anda (NIM, Program Studi, Indeks Prestasi, dan status Tracer Study) akan otomatis disertakan dalam pengajuan ke pihak HRD mitra.</p>
       </div>
 
-      <div class="space-y-3">
-        <div>
-          <label class="block text-xs font-bold text-gray-700 mb-1">Catatan Tambahan / Ringkasan Portofolio untuk HRD (Opsional):</label>
-          <textarea id="apply-job-notes" rows="4" class="w-full text-xs p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-brand-800 focus:outline-none" placeholder="Tuliskan tautan LinkedIn, GitHub, atau portfolio profesional serta pesan pengantar singkat Anda..."></textarea>
-        </div>
+      <!-- Warning Requirement Banner -->
+      <div class="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs flex items-center gap-2.5">
+        <i data-lucide="alert-circle" class="w-4 h-4 text-amber-600 shrink-0"></i>
+        <span><strong>Ketentuan Berkas Lamaran:</strong> Unggah berkas dalam format <strong>.pdf</strong> dengan ukuran masing-masing maksimal <strong>5 MB (5120 KB)</strong>. Cantumkan portofolio atau sertifikat tambahan untuk memperkuat profil Anda.</span>
       </div>
+
+      <!-- Upload Rows (Seragam dengan Mahasiswa + Tambahan Portofolio) -->
+      <div class="space-y-3 pt-1">
+        
+        <!-- Row 1: CV / Resume -->
+        <div class="p-4 rounded-xl border border-gray-200 bg-white hover:border-gray-300 transition-colors">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div class="flex-1">
+              <label class="block text-xs font-bold text-gray-900 mb-0.5">
+                1. Curriculum Vitae (CV) / Resume Terbaru <span class="text-red-500">*</span>
+              </label>
+              <div id="alm-row-cv-status" class="flex items-center gap-2 text-xs text-gray-500">
+                <span id="alm-row-cv-name" class="font-mono text-gray-700">Belum ada berkas dipilih</span>
+              </div>
+              <div id="alm-row-cv-err" class="text-[11px] text-red-600 font-semibold hidden mt-1"></div>
+            </div>
+            <div class="flex items-center gap-2">
+              <input type="file" id="alm-file-cv" accept=".pdf" class="hidden" onchange="window.SIMAGA_ALM.handleAlmJobFile(event, 'cv')">
+              <button type="button" onclick="document.getElementById('alm-file-cv').click()" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 text-xs font-bold rounded-xl border border-gray-300 transition-colors flex items-center gap-1.5">
+                <i data-lucide="file-up" class="w-3.5 h-3.5"></i> Pilih Berkas
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Row 2: Ijazah / Transkrip Nilai -->
+        <div class="p-4 rounded-xl border border-gray-200 bg-white hover:border-gray-300 transition-colors">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div class="flex-1">
+              <label class="block text-xs font-bold text-gray-900 mb-0.5">
+                2. Ijazah / Transkrip Nilai Akademik Terakhir <span class="text-red-500">*</span>
+              </label>
+              <div id="alm-row-transkrip-status" class="flex items-center gap-2 text-xs text-gray-500">
+                <span id="alm-row-transkrip-name" class="font-mono text-gray-700">Belum ada berkas dipilih</span>
+              </div>
+              <div id="alm-row-transkrip-err" class="text-[11px] text-red-600 font-semibold hidden mt-1"></div>
+            </div>
+            <div class="flex items-center gap-2">
+              <input type="file" id="alm-file-transkrip" accept=".pdf" class="hidden" onchange="window.SIMAGA_ALM.handleAlmJobFile(event, 'transkrip')">
+              <button type="button" onclick="document.getElementById('alm-file-transkrip').click()" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 text-xs font-bold rounded-xl border border-gray-300 transition-colors flex items-center gap-1.5">
+                <i data-lucide="file-up" class="w-3.5 h-3.5"></i> Pilih Berkas
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Row 3: Portofolio Proyek (Fitur Khusus Alumni) -->
+        <div class="p-4 rounded-xl border border-emerald-200 bg-emerald-50/30 hover:border-emerald-300 transition-colors">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div class="flex-1">
+              <div class="flex items-center gap-2 mb-0.5">
+                <label class="block text-xs font-bold text-gray-900">
+                  3. Portofolio Proyek / Karya Desain & Kode
+                </label>
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">File Tambahan</span>
+              </div>
+              <div id="alm-row-portofolio-status" class="flex items-center gap-2 text-xs text-gray-500">
+                <span id="alm-row-portofolio-name" class="font-mono text-gray-700">Belum ada berkas dipilih (Opsional)</span>
+              </div>
+              <div id="alm-row-portofolio-err" class="text-[11px] text-red-600 font-semibold hidden mt-1"></div>
+            </div>
+            <div class="flex items-center gap-2">
+              <input type="file" id="alm-file-portofolio" accept=".pdf" class="hidden" onchange="window.SIMAGA_ALM.handleAlmJobFile(event, 'portofolio')">
+              <button type="button" onclick="document.getElementById('alm-file-portofolio').click()" class="px-4 py-2 bg-emerald-100/70 hover:bg-emerald-100 text-emerald-900 text-xs font-bold rounded-xl border border-emerald-300 transition-colors flex items-center gap-1.5">
+                <i data-lucide="file-up" class="w-3.5 h-3.5"></i> Pilih Berkas
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Row 4: Berkas Tambahan / Sertifikat Kompetensi -->
+        <div class="p-4 rounded-xl border border-gray-200 bg-white hover:border-gray-300 transition-colors">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div class="flex-1">
+              <div class="flex items-center gap-2 mb-0.5">
+                <label class="block text-xs font-bold text-gray-900">
+                  4. Sertifikat Kompetensi / Dokumen Pendukung Lainnya
+                </label>
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-gray-100 text-gray-600">Opsional</span>
+              </div>
+              <div id="alm-row-tambahan-status" class="flex items-center gap-2 text-xs text-gray-500">
+                <span id="alm-row-tambahan-name" class="font-mono text-gray-700">Belum ada berkas dipilih (Opsional)</span>
+              </div>
+              <div id="alm-row-tambahan-err" class="text-[11px] text-red-600 font-semibold hidden mt-1"></div>
+            </div>
+            <div class="flex items-center gap-2">
+              <input type="file" id="alm-file-tambahan" accept=".pdf" class="hidden" onchange="window.SIMAGA_ALM.handleAlmJobFile(event, 'tambahan')">
+              <button type="button" onclick="document.getElementById('alm-file-tambahan').click()" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 text-xs font-bold rounded-xl border border-gray-300 transition-colors flex items-center gap-1.5">
+                <i data-lucide="file-up" class="w-3.5 h-3.5"></i> Pilih Berkas
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Catatan Tambahan / Tautan Online -->
+      <div class="space-y-2">
+        <label class="block text-xs font-bold text-gray-700">Catatan Tambahan / Tautan Online (LinkedIn, GitHub, Behance, Portofolio Web) (Opsional):</label>
+        <textarea id="apply-job-notes" rows="3" class="w-full text-xs p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-brand-800 focus:outline-none" placeholder="Tuliskan tautan LinkedIn, GitHub, repositori proyek, atau pesan pengantar profesional singkat Anda..."></textarea>
+      </div>
+
+      <!-- Checkbox Konfirmasi Keabsahan -->
+      <label class="flex items-start gap-2.5 p-3.5 bg-gray-50 rounded-xl border border-gray-200 text-xs cursor-pointer">
+        <input type="checkbox" id="alm-confirm-chk" class="mt-0.5 accent-brand-800">
+        <span class="text-gray-700 font-medium">Saya menyatakan bahwa seluruh informasi profil dan berkas lamaran yang saya lampirkan adalah valid, benar, dan dapat dipertanggungjawabkan kepada pihak mitra industri.</span>
+      </label>
 
       <div class="flex justify-end gap-3 pt-3 border-t border-gray-100">
         <button onclick="document.getElementById('modal-apply-job').classList.add('hidden')" class="px-4 py-2 text-xs font-bold text-gray-600 hover:text-gray-900">

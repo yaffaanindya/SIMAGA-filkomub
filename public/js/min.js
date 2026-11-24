@@ -158,10 +158,12 @@ window.SIMAGA_MIN = (function() {
             <span class="text-xs font-semibold text-gray-600 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-200 mr-1">
               Kuota: <strong>${v.kuota}</strong> orang
             </span>
-            <button onclick="window.SIMAGA_MIN.openEditVacancyModal('${v.id_lowongan}')" 
-              class="px-3 py-1.5 text-xs font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-xl transition-colors flex items-center gap-1.5" title="Edit Lowongan">
-              <i data-lucide="edit-3" class="w-3.5 h-3.5"></i> Edit
-            </button>
+            ${v.status_publikasi !== 'ditolak' ? `
+              <button onclick="window.SIMAGA_MIN.openEditVacancyModal('${v.id_lowongan}')" 
+                class="px-3 py-1.5 text-xs font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-xl transition-colors flex items-center gap-1.5" title="Edit Lowongan">
+                <i data-lucide="edit-3" class="w-3.5 h-3.5"></i> Edit
+              </button>
+            ` : ''}
             <button onclick="window.SIMAGA_MIN.deleteVacancy('${v.id_lowongan}', '${(v.judul_posisi || '').replace(/'/g, "\\'")}')" 
               class="px-3 py-1.5 text-xs font-bold text-red-700 bg-red-50 hover:bg-red-100 border border-red-200 rounded-xl transition-colors flex items-center gap-1.5" title="Hapus Lowongan">
               <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Hapus
@@ -320,6 +322,11 @@ window.SIMAGA_MIN = (function() {
     const v = myVacanciesList.find(item => item.id_lowongan === id_lowongan);
     if (!v) {
       alert('Lowongan tidak ditemukan.');
+      return;
+    }
+
+    if (v.status_publikasi === 'ditolak') {
+      alert('Lowongan yang telah ditolak oleh admin tidak dapat diedit kembali.');
       return;
     }
 

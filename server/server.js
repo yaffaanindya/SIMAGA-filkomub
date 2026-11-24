@@ -261,6 +261,11 @@ app.post('/api/vacancies', async (req, res) => {
 // Edit Lowongan oleh Mitra Industri
 app.put('/api/vacancies/:id', async (req, res) => {
   try {
+    const vacancies = await getAllVacancies();
+    const target = vacancies.find(v => v.id_lowongan === req.params.id);
+    if (target && target.status_publikasi === 'ditolak') {
+      return res.status(400).json({ status: 'error', message: 'Lowongan yang telah ditolak oleh admin tidak dapat diedit kembali.' });
+    }
     const result = await updateVacancy(req.params.id, req.body);
     res.json({ status: 'success', message: 'Lowongan berhasil diperbarui.', data: result });
   } catch (error) {
@@ -348,14 +353,16 @@ app.get('/api/applications', async (req, res) => {
   }
 });
 
-// Pendaftaran magang dengan unggah 3 berkas PDF ke Google Drive
+// Pendaftaran magang / pekerjaan dengan unggah berkas PDF ke Google Drive
 app.post('/api/applications', upload.fields([
   { name: 'cv', maxCount: 1 },
   { name: 'transkrip', maxCount: 1 },
-  { name: 'rekomendasi', maxCount: 1 }
+  { name: 'rekomendasi', maxCount: 1 },
+  { name: 'portofolio', maxCount: 1 },
+  { name: 'tambahan', maxCount: 1 }
 ]), async (req, res) => {
   try {
-    const { id_lowongan, id_user } = req.body;
+    const { id_lowongan, id_user, catatan_seleksi } = req.body;
     if (!id_lowongan || !id_user) {
       return res.status(400).json({ status: 'error', message: 'ID lowongan dan ID user wajib disertakan.' });
     }
@@ -367,23 +374,40 @@ app.post('/api/applications', upload.fields([
       return res.status(400).json({ status: 'error', message: 'Anda sudah pernah mendaftar pada lowongan ini.' });
     }
 
-    // Validasi 3 file wajib
+    // Identifikasi jenis lowongan
+    const allVacancies = await getAllVacancies();
+    const targetVac = allVacancies.find(v => v.id_lowongan === id_lowongan);
+    const isPekerjaan = targetVac && targetVac.jenis_kesempatan === 'Pekerjaan';
+
     const cvFile = req.files && req.files['cv'] && req.files['cv'][0];
     const transkripFile = req.files && req.files['transkrip'] && req.files['transkrip'][0];
     const rekomendasiFile = req.files && req.files['rekomendasi'] && req.files['rekomendasi'][0];
+    const portofolioFile = req.files && req.files['portofolio'] && req.files['portofolio'][0];
+    const tambahanFile = req.files && req.files['tambahan'] && req.files['tambahan'][0];
 
-    if (!cvFile || !transkripFile || !rekomendasiFile) {
-      return res.status(400).json({ 
-        status: 'error', 
-        message: 'Wajib mengunggah ketiga berkas persyaratan: CV, Transkrip Nilai, dan Surat Rekomendasi Fakultas (.pdf, maks 5 MB).' 
-      });
+    // Validasi kelengkapan berkas wajib
+    if (isPekerjaan) {
+      if (!cvFile) {
+        return res.status(400).json({
+          status: 'error',
+          message: 'Wajib mengunggah Curriculum Vitae (CV) terbaru (.pdf, maks 5 MB).'
+        });
+      }
+    } else {
+      if (!cvFile || !transkripFile || !rekomendasiFile) {
+        return res.status(400).json({ 
+          status: 'error', 
+          message: 'Wajib mengunggah ketiga berkas persyaratan magang: CV, Transkrip Nilai, dan Surat Rekomendasi Fakultas (.pdf, maks 5 MB).' 
+        });
+      }
     }
 
-    const filesToUpload = [
-      { jenis: 'CV', file: cvFile },
-      { jenis: 'Transkrip', file: transkripFile },
-      { jenis: 'Surat Rekomendasi', file: rekomendasiFile }
-    ];
+    const filesToUpload = [];
+    if (cvFile) filesToUpload.push({ jenis: 'CV', file: cvFile });
+    if (transkripFile) filesToUpload.push({ jenis: 'Transkrip', file: transkripFile });
+    if (rekomendasiFile) filesToUpload.push({ jenis: 'Surat Rekomendasi', file: rekomendasiFile });
+    if (portofolioFile) filesToUpload.push({ jenis: 'Portofolio', file: portofolioFile });
+    if (tambahanFile) filesToUpload.push({ jenis: 'Dokumen Tambahan', file: tambahanFile });
 
     // Validasi MIME & Ukuran
     for (const item of filesToUpload) {
@@ -395,10 +419,10 @@ app.post('/api/applications', upload.fields([
       }
     }
 
-    const id_pendaftaran = 'REG-' + Date.now();
+    const id_pendaftaran = (isPekerjaan ? 'REG-ALM-' : 'REG-') + Date.now().toString().slice(-6);
     const nowStr = new Date().toISOString().replace('T', ' ').substring(0, 19);
 
-    // Upload ketiga berkas ke Google Drive di folder SIMAGA_Storage/Pendaftaran_{id_pendaftaran}
+    // Upload berkas ke Google Drive di folder SIMAGA_Storage/Pendaftaran_{id_pendaftaran}
     const uploadedRecords = [];
     for (let i = 0; i < filesToUpload.length; i++) {
       const { jenis, file } = filesToUpload[i];
@@ -425,7 +449,7 @@ app.post('/api/applications', upload.fields([
       id_lowongan,
       id_user,
       status_seleksi: 'berkas_terkirim',
-      catatan_seleksi: 'Lamaran terkirim dan sedang dalam antrean pemeriksaan berkas.',
+      catatan_seleksi: catatan_seleksi || (isPekerjaan ? 'Lamaran pekerjaan Anda sedang dalam antrean seleksi HRD mitra.' : 'Lamaran terkirim dan sedang dalam antrean pemeriksaan berkas.'),
       tanggal_daftar: nowStr
     };
 
@@ -684,6 +708,10 @@ app.put('/api/tracer/:id/validate', async (req, res) => {
 
     kuesioner.status_validasi = status;
     kuesioner.id_admin = id_admin || 'ADM-001';
+    if (status === 'tervalidasi') {
+      kuesioner.is_anomali = false;
+    }
+    saveMockDB();
 
     // Jika perlu klarifikasi, kirim notifikasi ke alumni
     const alumni = mockDB.alumni.find(a => a.nim === kuesioner.nim);

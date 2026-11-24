@@ -469,8 +469,61 @@ window.SIMAGA_ALM = (function() {
     window.SIMAGA_PDF.downloadTracerProof(record, alumniData);
   }
 
-  // Modul Lamaran Kerja Alumni (Point 7)
+  // Modul Lamaran Kerja Alumni (Point 7 & Berkas Mandiri)
   let selectedJob = null;
+  let almJobFiles = { cv: null, transkrip: null, portofolio: null, tambahan: null };
+
+  function handleAlmJobFile(event, type) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const nameEl = document.getElementById(`alm-row-${type}-name`);
+    const errEl = document.getElementById(`alm-row-${type}-err`);
+
+    // Validasi format file PDF
+    if (!file.name.toLowerCase().endsWith('.pdf') && file.type !== 'application/pdf') {
+      almJobFiles[type] = null;
+      if (nameEl) nameEl.innerHTML = `<span class="text-red-600 font-semibold">${file.name}</span>`;
+      if (errEl) {
+        errEl.textContent = 'Format berkas tidak didukung. Wajib format PDF (.pdf).';
+        errEl.classList.remove('hidden');
+      }
+      return;
+    }
+
+    // Validasi ukuran <= 5 MB
+    const maxBytes = 5 * 1024 * 1024;
+    if (file.size > maxBytes) {
+      almJobFiles[type] = null;
+      if (nameEl) nameEl.innerHTML = `<span class="text-red-600 font-semibold">${file.name} (${(file.size / (1024 * 1024)).toFixed(1)} MB)</span>`;
+      if (errEl) {
+        errEl.textContent = 'Ukuran berkas melebihi batas maksimal 5 MB (5120 KB)!';
+        errEl.classList.remove('hidden');
+      }
+      return;
+    }
+
+    // File valid
+    const sizeKb = Math.round(file.size / 1024);
+    almJobFiles[type] = {
+      fileObject: file,
+      filename: file.name,
+      size_kb: sizeKb
+    };
+
+    if (errEl) {
+      errEl.classList.add('hidden');
+      errEl.textContent = '';
+    }
+    if (nameEl) {
+      nameEl.innerHTML = `
+        <span class="text-emerald-700 font-bold flex items-center gap-1.5">
+          <i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-emerald-600"></i> ${file.name} (${sizeKb} KB)
+        </span>
+      `;
+    }
+    if (window.lucide) window.lucide.createIcons();
+  }
 
   async function openApplyJobModal(id_lowongan) {
     const res = await window.SIMAGA_API.getVacancies({ status: 'all' });
@@ -478,6 +531,8 @@ window.SIMAGA_ALM = (function() {
     if (!v) return;
 
     selectedJob = v;
+    almJobFiles = { cv: null, transkrip: null, portofolio: null, tambahan: null };
+
     const modal = document.getElementById('modal-apply-job');
     const titleEl = document.getElementById('apply-job-title');
     const subtitleEl = document.getElementById('apply-job-subtitle');
@@ -486,6 +541,27 @@ window.SIMAGA_ALM = (function() {
     if (titleEl) titleEl.textContent = v.judul_posisi;
     if (subtitleEl) subtitleEl.textContent = `${v.mitra ? v.mitra.nama_perusahaan : 'Mitra Industri FILKOM'} • ${v.lokasi} • Batas: ${v.batas_pendaftaran}`;
     if (notesEl) notesEl.value = '';
+
+    // Reset status tampilan baris berkas
+    ['cv', 'transkrip'].forEach(t => {
+      const nameEl = document.getElementById(`alm-row-${t}-name`);
+      const errEl = document.getElementById(`alm-row-${t}-err`);
+      const inputEl = document.getElementById(`alm-file-${t}`);
+      if (nameEl) nameEl.innerHTML = 'Belum ada berkas dipilih';
+      if (errEl) { errEl.classList.add('hidden'); errEl.textContent = ''; }
+      if (inputEl) inputEl.value = '';
+    });
+    ['portofolio', 'tambahan'].forEach(t => {
+      const nameEl = document.getElementById(`alm-row-${t}-name`);
+      const errEl = document.getElementById(`alm-row-${t}-err`);
+      const inputEl = document.getElementById(`alm-file-${t}`);
+      if (nameEl) nameEl.innerHTML = 'Belum ada berkas dipilih (Opsional)';
+      if (errEl) { errEl.classList.add('hidden'); errEl.textContent = ''; }
+      if (inputEl) inputEl.value = '';
+    });
+
+    const chk = document.getElementById('alm-confirm-chk');
+    if (chk) chk.checked = false;
 
     modal?.classList.remove('hidden');
     if (window.lucide) window.lucide.createIcons();
@@ -501,6 +577,22 @@ window.SIMAGA_ALM = (function() {
 
     if (!selectedJob) return;
 
+    // Validasi berkas wajib alumni (CV dan Transkrip/Ijazah)
+    if (!almJobFiles.cv) {
+      alert('Mohon unggah berkas wajib: Curriculum Vitae (CV) / Resume Terbaru (.pdf maks 5 MB).');
+      return;
+    }
+    if (!almJobFiles.transkrip) {
+      alert('Mohon unggah berkas wajib: Ijazah / Transkrip Nilai Akademik Terakhir (.pdf maks 5 MB).');
+      return;
+    }
+
+    const chk = document.getElementById('alm-confirm-chk');
+    if (!chk || !chk.checked) {
+      alert('Silakan centang persetujuan keabsahan data profil dan berkas lamaran Anda.');
+      return;
+    }
+
     const notes = document.getElementById('apply-job-notes')?.value || '';
     const btn = document.getElementById('btn-submit-apply-job');
     const origText = btn ? btn.innerHTML : '';
@@ -511,10 +603,37 @@ window.SIMAGA_ALM = (function() {
     if (window.lucide) window.lucide.createIcons();
 
     try {
-      const res = await window.SIMAGA_API.submitJobApplication(selectedJob.id_lowongan, user.id_user, { catatan: notes });
+      const filesPayload = [
+        { jenis: 'CV', filename: almJobFiles.cv.filename, size_kb: almJobFiles.cv.size_kb, fileObject: almJobFiles.cv.fileObject },
+        { jenis: 'Transkrip', filename: almJobFiles.transkrip.filename, size_kb: almJobFiles.transkrip.size_kb, fileObject: almJobFiles.transkrip.fileObject }
+      ];
+
+      // Berkas tambahan portofolio & pendukung jika ada
+      if (almJobFiles.portofolio) {
+        filesPayload.push({
+          jenis: 'Portofolio',
+          filename: almJobFiles.portofolio.filename,
+          size_kb: almJobFiles.portofolio.size_kb,
+          fileObject: almJobFiles.portofolio.fileObject
+        });
+      }
+      if (almJobFiles.tambahan) {
+        filesPayload.push({
+          jenis: 'Dokumen Tambahan',
+          filename: almJobFiles.tambahan.filename,
+          size_kb: almJobFiles.tambahan.size_kb,
+          fileObject: almJobFiles.tambahan.fileObject
+        });
+      }
+
+      const res = await window.SIMAGA_API.submitJobApplication(selectedJob.id_lowongan, user.id_user, {
+        catatan: notes,
+        files: filesPayload
+      });
+
       if (res.status === 'success') {
         document.getElementById('modal-apply-job')?.classList.add('hidden');
-        alert('🎉 Lamaran pekerjaan berhasil dikirim ke mitra industri!\nStatus: Berkas Terkirim.');
+        alert('🎉 Lamaran pekerjaan berhasil dikirim ke mitra industri!\nBerkas CV, Transkrip/Ijazah, dan Portofolio telah diunggah.');
         window.SIMAGA_ROUTER.navigateTo('alm-lamaran');
       } else {
         alert(res.message || 'Gagal mengirim lamaran.');
@@ -610,6 +729,7 @@ window.SIMAGA_ALM = (function() {
   return {
     renderJobs,
     openApplyJobModal,
+    handleAlmJobFile,
     submitJobApplication,
     renderMyJobApplications,
     initTracerStudy,

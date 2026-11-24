@@ -305,7 +305,7 @@ window.SIMAGA_MHS = (function() {
     const btn = document.getElementById('btn-submit-apply');
     const originalText = btn.innerHTML;
     btn.disabled = true;
-    btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin mr-1.5 inline"></i> Mengunggah ke Google Drive...`;
+    btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin mr-1.5 inline"></i> Mengirim Lamaran...`;
     if (window.lucide) window.lucide.createIcons();
 
     try {
@@ -575,7 +575,7 @@ window.SIMAGA_MHS = (function() {
     const btn = document.getElementById('btn-wireframe-submit');
     const origText = btn.innerHTML;
     btn.disabled = true;
-    btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin mr-1.5 inline"></i> Mengunggah ke Google Drive...`;
+    btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin mr-1.5 inline"></i> Mengirim Lamaran...`;
     if (window.lucide) window.lucide.createIcons();
 
     try {

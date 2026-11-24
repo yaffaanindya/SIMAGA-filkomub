@@ -1002,7 +1002,7 @@ window.SIMAGA_API = (function() {
     // 5D. ALUMNI JOB APPLICATION (Point 7)
     async submitJobApplication(id_lowongan, id_user, payload = {}) {
       const nowStr = new Date().toISOString().replace('T', ' ').substring(0, 19);
-      const id_pendaftaran = 'REG-JOB-' + Date.now().toString().slice(-6);
+      const id_pendaftaran = 'REG-ALM-' + Date.now().toString().slice(-6);
 
       const appRec = {
         id_pendaftaran,
@@ -1014,19 +1014,43 @@ window.SIMAGA_API = (function() {
       };
 
       try {
-        const res = await requestNode('/api/applications', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            id_lowongan,
-            id_user,
-            catatan_seleksi: appRec.catatan_seleksi,
-            files: []
-          })
+        const formData = new FormData();
+        formData.append('id_lowongan', id_lowongan);
+        formData.append('id_user', id_user);
+        formData.append('catatan_seleksi', appRec.catatan_seleksi);
+
+        const files = payload.files || [];
+        files.forEach(f => {
+          const fieldName = f.jenis === 'CV' ? 'cv' :
+                            f.jenis === 'Transkrip' ? 'transkrip' :
+                            f.jenis === 'Portofolio' ? 'portofolio' : 'tambahan';
+          if (f.fileObject) {
+            formData.append(fieldName, f.fileObject, f.filename);
+          } else {
+            const blob = new Blob(['%PDF-1.4 Mock Alumni Document Content'], { type: 'application/pdf' });
+            formData.append(fieldName, blob, f.filename);
+          }
         });
-        return res;
+
+        const res = await fetch('/api/applications', {
+          method: 'POST',
+          body: formData
+        });
+        return await res.json();
       } catch (e) {
         window.SIMAGA_DB.pendaftaran.push(appRec);
+        (payload.files || []).forEach((f, idx) => {
+          window.SIMAGA_DB.berkas_persyaratan.push({
+            id_berkas: `BRK-${id_pendaftaran}-${idx + 1}`,
+            id_pendaftaran,
+            jenis_berkas: f.jenis,
+            nama_file: f.filename,
+            ukuran_kb: f.size_kb || 500,
+            drive_file_id: 'mock_drive_' + Date.now(),
+            drive_url: 'https://drive.google.com/file/d/mock_alm_' + Date.now() + '/view?usp=sharing',
+            tanggal_unggah: nowStr
+          });
+        });
         window.SIMAGA_DB.notifikasi.push({
           id_notifikasi: 'NTF-' + Date.now(),
           id_user,
