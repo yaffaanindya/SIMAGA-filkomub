@@ -170,6 +170,7 @@ window.SIMAGA_ALM = (function() {
     if (!dynamicContainer || !status) return;
 
     dynamicContainer.classList.remove('hidden');
+    clearTracerErrors();
 
     if (status === 'Bekerja') {
       dynamicContainer.innerHTML = `
@@ -209,6 +210,7 @@ window.SIMAGA_ALM = (function() {
             <div>
               <label class="block text-xs font-semibold text-gray-700 mb-1">Tingkat Tempat Kerja *</label>
               <select id="ts-tingkat-kerja" class="w-full text-xs p-2.5 border border-gray-300 rounded-xl bg-white">
+                <option value="">-- Pilih Tingkat Tempat Kerja --</option>
                 <option value="Lokal / Wilayah">Lokal / Wilayah</option>
                 <option value="Nasional">Nasional</option>
                 <option value="Multinasional / Internasional">Multinasional / Internasional</option>
@@ -233,8 +235,9 @@ window.SIMAGA_ALM = (function() {
               <input type="text" id="ts-posisi" class="w-full text-xs p-2.5 border border-gray-300 rounded-xl bg-white" placeholder="Contoh: Software House & IT Consultant">
             </div>
             <div>
-              <label class="block text-xs font-semibold text-gray-700 mb-1">Omset Rata-rata Bulanan *</label>
+              <label class="block text-xs font-semibold text-gray-700 mb-1">Omset / Pendapatan Rata-rata Bulanan *</label>
               <select id="ts-gaji" class="w-full text-xs p-2.5 border border-gray-300 rounded-xl bg-white">
+                <option value="">-- Pilih Rentang Omset --</option>
                 <option value="<5jt">&lt; Rp 5.000.000</option>
                 <option value="5-15jt">Rp 5.000.000 - Rp 15.000.000</option>
                 <option value="15-50jt">Rp 15.000.000 - Rp 50.000.000</option>
@@ -242,8 +245,12 @@ window.SIMAGA_ALM = (function() {
               </select>
             </div>
             <div>
-              <label class="block text-xs font-semibold text-gray-700 mb-1">Jumlah Karyawan / Rekan Kerja</label>
+              <label class="block text-xs font-semibold text-gray-700 mb-1">Masa Tunggu Memulai Usaha Setelah Lulus (Bulan) *</label>
               <input type="number" id="ts-masa-tunggu" min="0" class="w-full text-xs p-2.5 border border-gray-300 rounded-xl bg-white" placeholder="Contoh: 3">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-gray-700 mb-1">Jumlah Karyawan / Rekan Kerja</label>
+              <input type="number" id="ts-jumlah-karyawan" min="0" class="w-full text-xs p-2.5 border border-gray-300 rounded-xl bg-white" placeholder="Contoh: 3">
             </div>
           </div>
         </div>
@@ -265,7 +272,8 @@ window.SIMAGA_ALM = (function() {
             </div>
             <div class="sm:col-span-2">
               <label class="block text-xs font-semibold text-gray-700 mb-1">Sumber Pendanaan Studi *</label>
-              <select id="ts-gaji" class="w-full text-xs p-2.5 border border-gray-300 rounded-xl bg-white">
+              <select id="ts-sumber-biaya" class="w-full text-xs p-2.5 border border-gray-300 rounded-xl bg-white">
+                <option value="">-- Pilih Sumber Pendanaan --</option>
                 <option value="Beasiswa LPDP">Beasiswa LPDP Republik Indonesia</option>
                 <option value="Beasiswa Dikti / Kampus">Beasiswa Kementerian / Institusi Kampus</option>
                 <option value="Biaya Mandiri">Biaya Mandiri / Keluarga</option>
@@ -287,7 +295,7 @@ window.SIMAGA_ALM = (function() {
             </div>
             <div>
               <label class="block text-xs font-semibold text-gray-700 mb-1">Kendala utama yang dihadapi:</label>
-              <textarea id="ts-instansi" rows="2" class="w-full text-xs p-2.5 border border-gray-300 rounded-xl bg-white" placeholder="Tuliskan kendala dalam mencari peluang yang relevan..."></textarea>
+              <textarea id="ts-kendala" rows="2" class="w-full text-xs p-2.5 border border-gray-300 rounded-xl bg-white" placeholder="Tuliskan kendala dalam mencari peluang yang relevan..."></textarea>
             </div>
           </div>
         </div>
@@ -297,6 +305,24 @@ window.SIMAGA_ALM = (function() {
     if (window.lucide) window.lucide.createIcons();
   }
 
+  // Pemetaan key data_jawaban -> elemen form (dipakai untuk isi draf & sorot kolom kosong)
+  const TRACER_FIELD_ELEMENTS = {
+    status_karir: 'ts-status-group',
+    instansi: 'ts-instansi',
+    posisi: 'ts-posisi',
+    gaji: 'ts-gaji',
+    gaji_nominal: 'ts-gaji-nominal',
+    masa_tunggu: 'ts-masa-tunggu',
+    tingkat_tempat_kerja: 'ts-tingkat-kerja',
+    sumber_biaya: 'ts-sumber-biaya',
+    jumlah_karyawan: 'ts-jumlah-karyawan',
+    kendala: 'ts-kendala',
+    keselarasan: 'ts-relevansi-group',
+    relevansi_kurikulum: 'ts-saran'
+  };
+  // Tahap stepper tempat setiap kolom berada
+  const fieldStep = (field) => (field === 'keselarasan' || field === 'relevansi_kurikulum') ? 3 : 2;
+
   // Mengisi draf isian yang tersimpan
   function populateDraftData(record) {
     if (!record) return;
@@ -304,51 +330,77 @@ window.SIMAGA_ALM = (function() {
       const radio = document.querySelector(`input[name="ts-status-karir"][value="${record.status_karir}"]`);
       if (radio) {
         radio.checked = true;
-        onCareerStatusChange();
+        onCareerStatusChange(); // render pertanyaan lanjutan secara sinkron
       }
     }
 
     let j = {};
-    try { j = JSON.parse(record.data_jawaban); } catch(e){}
+    try { j = typeof record.data_jawaban === 'string' ? JSON.parse(record.data_jawaban) : (record.data_jawaban || {}); } catch (e) {}
 
-    setTimeout(() => {
-      if (document.getElementById('ts-instansi')) document.getElementById('ts-instansi').value = j.instansi || '';
-      if (document.getElementById('ts-posisi')) document.getElementById('ts-posisi').value = j.posisi || '';
-      if (document.getElementById('ts-gaji')) document.getElementById('ts-gaji').value = j.gaji || '';
-      if (document.getElementById('ts-gaji-nominal')) document.getElementById('ts-gaji-nominal').value = j.gaji_nominal || '';
-      if (document.getElementById('ts-masa-tunggu')) document.getElementById('ts-masa-tunggu').value = j.masa_tunggu !== undefined ? j.masa_tunggu : '';
-      if (document.getElementById('ts-saran')) document.getElementById('ts-saran').value = j.relevansi_kurikulum || '';
-    }, 100);
+    Object.entries(TRACER_FIELD_ELEMENTS).forEach(([key, id]) => {
+      if (key === 'status_karir' || key === 'keselarasan') return;
+      const el = document.getElementById(id);
+      if (el && j[key] !== undefined && j[key] !== null) el.value = j[key];
+    });
+    if (j.keselarasan) {
+      const r = document.querySelector(`input[name="ts-relevansi"][value="${j.keselarasan}"]`);
+      if (r) r.checked = true;
+    }
   }
 
-  // Kumpulkan Data Form
+  // Kumpulkan Data Form (dipakai oleh Simpan Draf maupun Kirim Final)
   function gatherFormData() {
+    const val = (id) => document.getElementById(id)?.value ?? '';
     const status_karir = document.querySelector('input[name="ts-status-karir"]:checked')?.value || '';
-    const instansi = document.getElementById('ts-instansi')?.value || '';
-    const posisi = document.getElementById('ts-posisi')?.value || '';
-    const gaji = document.getElementById('ts-gaji')?.value || '';
-    const gaji_nominal = document.getElementById('ts-gaji-nominal')?.value || '';
-    const masa_tunggu = document.getElementById('ts-masa-tunggu')?.value || '';
-    const tingkat_tempat_kerja = document.getElementById('ts-tingkat-kerja')?.value || '';
-    const relevansiRadio = document.querySelector('input[name="ts-relevansi"]:checked')?.value || '5';
-    const saran = document.getElementById('ts-saran')?.value || '';
+    // Tidak ada nilai bawaan: bila belum dipilih, keselarasan kosong (bukan otomatis 5)
+    const relevansiRadio = document.querySelector('input[name="ts-relevansi"]:checked')?.value || '';
 
-    return {
-      status_karir,
-      data_jawaban: {
-        instansi,
-        posisi,
-        gaji,
-        gaji_nominal,
-        masa_tunggu,
-        tingkat_tempat_kerja,
-        keselarasan: Number(relevansiRadio),
-        relevansi_kurikulum: saran
-      }
+    const data_jawaban = {
+      instansi: val('ts-instansi'),
+      posisi: val('ts-posisi'),
+      gaji: val('ts-gaji'),
+      gaji_nominal: val('ts-gaji-nominal'),
+      masa_tunggu: val('ts-masa-tunggu'),
+      tingkat_tempat_kerja: val('ts-tingkat-kerja'),
+      keselarasan: relevansiRadio === '' ? '' : Number(relevansiRadio),
+      relevansi_kurikulum: val('ts-saran')
     };
+    // Kolom khusus status tertentu hanya disertakan bila ada di form
+    if (document.getElementById('ts-sumber-biaya')) data_jawaban.sumber_biaya = val('ts-sumber-biaya');
+    if (document.getElementById('ts-jumlah-karyawan')) data_jawaban.jumlah_karyawan = val('ts-jumlah-karyawan');
+    if (document.getElementById('ts-kendala')) data_jawaban.kendala = val('ts-kendala');
+
+    return { status_karir, data_jawaban };
   }
 
-  // Simpan Draf Kuesioner (PC-04, UC-08)
+  function clearTracerErrors() {
+    document.getElementById('ts-error-banner')?.classList.add('hidden');
+    Object.values(TRACER_FIELD_ELEMENTS).forEach(id => {
+      document.getElementById(id)?.classList.remove('border-red-500', 'ring-2', 'ring-red-200');
+    });
+  }
+
+  function showTracerErrors(missing) {
+    clearTracerErrors();
+    missing.forEach(m => {
+      document.getElementById(TRACER_FIELD_ELEMENTS[m.field])?.classList.add('border-red-500', 'ring-2', 'ring-red-200');
+    });
+    const banner = document.getElementById('ts-error-banner');
+    if (banner) {
+      banner.innerHTML = '<strong>Kuesioner belum dapat dikirim.</strong> Lengkapi kolom wajib berikut (ditandai merah):' +
+        '<ul class="list-disc ml-5 mt-1">' + missing.map(m => `<li>${m.message} <span class="text-red-500">(Tahap ${fieldStep(m.field)})</span></li>`).join('') + '</ul>';
+      banner.classList.remove('hidden');
+    }
+    // Pindah ke tahap tempat kolom kosong pertama berada, lalu fokuskan
+    setStep(fieldStep(missing[0].field));
+    const first = document.getElementById(TRACER_FIELD_ELEMENTS[missing[0].field]);
+    if (first) {
+      first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      if (typeof first.focus === 'function' && /INPUT|SELECT|TEXTAREA/.test(first.tagName)) first.focus({ preventScroll: true });
+    }
+  }
+
+  // Simpan Draf Kuesioner (PC-04, UC-08) — TANPA validasi kolom wajib
   async function saveDraft() {
     const profile = window.SIMAGA_AUTH.getProfile() || {};
     const nim = profile.nim || '215150400111001';
@@ -364,26 +416,23 @@ window.SIMAGA_ALM = (function() {
 
   // Kirim Kuesioner Final (PC-05, UC-07)
   async function submitSurvey() {
+    const btn = document.getElementById('btn-submit-tracer');
+    if (btn && btn.disabled) return; // cegah klik ganda saat proses kirim
+
     const profile = window.SIMAGA_AUTH.getProfile() || {};
     const nim = profile.nim || '215150400111001';
     const form = gatherFormData();
 
-    // Validasi Kolom Wajib
-    if (!form.status_karir) {
-      alert('Silakan pilih salah satu opsi pada pertanyaan status karier saat ini.');
-      setStep(2);
+    // Validasi kolom wajib (aturan identik dengan server: tracer-rules.js).
+    // Ditolak TOTAL bila ada satu saja kolom wajib kosong / hanya berisi spasi.
+    const check = window.SIMAGA_TRACER_RULES.validateTracerFinal(form.status_karir, form.data_jawaban);
+    if (!check.valid) {
+      showTracerErrors(check.missing);
+      alert('Kuesioner belum lengkap.\n\nKolom wajib yang masih kosong:\n- ' + check.missing.map(m => m.label).join('\n- '));
       return;
     }
+    clearTracerErrors();
 
-    if (form.status_karir === 'Bekerja') {
-      if (!form.data_jawaban.instansi || !form.data_jawaban.posisi || !form.data_jawaban.gaji) {
-        alert('Mohon lengkapi seluruh pertanyaan wajib profil pekerjaan Anda.');
-        setStep(2);
-        return;
-      }
-    }
-
-    const btn = document.getElementById('btn-submit-tracer');
     const originalText = btn.innerHTML;
     btn.disabled = true;
     btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin mr-1.5 inline"></i> Memvalidasi & Mengirim Data...`;
@@ -397,6 +446,8 @@ window.SIMAGA_ALM = (function() {
         activeTracerRecord = res.data;
         showProofPanel(res.data);
       } else {
+        // Penolakan dari server (mis. validasi) — tampilkan kolom yang kurang
+        if (Array.isArray(res.missing) && res.missing.length) showTracerErrors(res.missing);
         alert(res.message || 'Gagal mengirim kuesioner.');
       }
     } catch (err) {
@@ -722,6 +773,17 @@ window.SIMAGA_ALM = (function() {
 
     if (window.lucide) window.lucide.createIcons();
   }
+
+  // Hapus sorotan merah saat alumni mulai mengisi kolom yang sebelumnya kosong
+  ['input', 'change'].forEach(evt => {
+    document.getElementById('tracer-form-container')?.addEventListener(evt, (e) => {
+      const t = e.target;
+      if (!t || !t.classList) return;
+      t.classList.remove('border-red-500', 'ring-2', 'ring-red-200');
+      if (t.name === 'ts-relevansi') document.getElementById('ts-relevansi-group')?.classList.remove('border-red-500', 'ring-2', 'ring-red-200');
+      if (t.name === 'ts-status-karir') document.getElementById('ts-status-group')?.classList.remove('border-red-500', 'ring-2', 'ring-red-200');
+    });
+  });
 
   return {
     renderJobs,

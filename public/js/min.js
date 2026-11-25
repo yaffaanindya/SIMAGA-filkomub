@@ -7,68 +7,258 @@
 window.SIMAGA_MIN = (function() {
   let selectedApplicationForReview = null;
 
-  // Inisialisasi Form Publikasi Lowongan (UI-01)
-  function initCreateVacancyForm() {
-    const today = new Date().toISOString().split('T')[0];
-    const deadlineInput = document.getElementById('min-deadline');
-    const startInput = document.getElementById('min-periode-mulai');
-    const endInput = document.getElementById('min-periode-selesai');
+  // ============================================================================
+  // FORM LOWONGAN BERSAMA (Publikasi Lowongan & Edit Lowongan di "Lowongan Saya")
+  // Kedua form dirender dari SATU template dan divalidasi oleh SATU aturan
+  // (public/js/vacancy-rules.js, juga dipakai server), sehingga field, label,
+  // tipe input, tanda wajib, dan validasinya dijamin identik 100%.
+  // ============================================================================
+  const RULES = window.SIMAGA_VACANCY_RULES;
+  const PREFIX_CREATE = 'vac-create';
+  const PREFIX_EDIT = 'vac-edit';
+  const FIELD_IDS = {
+    judul_posisi: 'judul',
+    jenis_kesempatan: 'jenis',
+    bidang_keahlian: 'bidang',
+    deskripsi: 'deskripsi',
+    kualifikasi: 'kualifikasi',
+    mode_kerja: 'mode-kerja',
+    kota: 'kota',
+    periode_mulai: 'mulai',
+    periode_selesai: 'selesai',
+    kuota: 'kuota',
+    batas_pendaftaran: 'deadline'
+  };
+  const fieldEl = (p, field) => document.getElementById(`${p}-${FIELD_IDS[field]}`);
+  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+  const inputCls = 'w-full text-xs p-2.5 border border-gray-300 rounded-xl bg-white';
+  const labelCls = 'block text-xs font-bold text-gray-700 mb-1';
 
-    if (deadlineInput) deadlineInput.min = today;
-    if (startInput) startInput.min = today;
+  function renderVacancyFields(p) {
+    const opts = (list) => list.map(o => `<option value="${esc(o.value)}">${esc(o.label)}</option>`).join('');
+    const bidangOpts = RULES.BIDANG_KEAHLIAN.map(b => ({ value: b, label: b }));
+    const dateChange = `onchange="window.SIMAGA_MIN.validateVacancyDates('${p}')"`;
+    return `
+      <div id="${p}-alert" class="hidden p-3.5 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl font-medium mb-4" role="alert"></div>
+      <div class="space-y-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label for="${p}-judul" class="${labelCls}">Judul Posisi Lowongan *</label>
+            <input type="text" id="${p}-judul" required class="${inputCls}" placeholder="Contoh: UI/UX Designer Intern">
+          </div>
+          <div>
+            <label for="${p}-jenis" class="${labelCls}">Jenis Kesempatan *</label>
+            <select id="${p}-jenis" required class="${inputCls}">${opts(RULES.JENIS_KESEMPATAN)}</select>
+          </div>
+        </div>
+
+        <div>
+          <label for="${p}-bidang" class="${labelCls}">Bidang Keahlian *</label>
+          <select id="${p}-bidang" required class="${inputCls}">${opts(bidangOpts)}</select>
+        </div>
+
+        <div>
+          <label for="${p}-deskripsi" class="${labelCls}">Deskripsi Tugas & Tanggung Jawab *</label>
+          <textarea id="${p}-deskripsi" rows="3" required class="${inputCls}" placeholder="Jelaskan ruang lingkup tugas, proyek yang dikerjakan, dan lingkungan kerja..."></textarea>
+        </div>
+
+        <div>
+          <label for="${p}-kualifikasi" class="${labelCls}">Kualifikasi & Keahlian yang Dibutuhkan *</label>
+          <textarea id="${p}-kualifikasi" rows="2" required class="${inputCls}" placeholder="Contoh: Mahasiswa semester 5-7, menguasai Figma, pemahaman dasar User Journey..."></textarea>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label for="${p}-mode-kerja" class="${labelCls}">Mode Kerja *</label>
+            <select id="${p}-mode-kerja" required class="${inputCls}" onchange="window.SIMAGA_MIN.onModeKerjaChange('${p}')">${opts(RULES.MODE_KERJA)}</select>
+          </div>
+          <div>
+            <label for="${p}-kota" class="${labelCls}">Kota / Lokasi Kantor <span id="${p}-kota-mark">*</span></label>
+            <input type="text" id="${p}-kota" required class="${inputCls}" placeholder="Contoh: Malang / Surabaya / Jakarta">
+            <span id="${p}-kota-hint" class="hidden text-[10px] text-gray-500">Opsional untuk mode Remote.</span>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label for="${p}-mulai" class="${labelCls}">Periode Mulai Pelaksanaan *</label>
+            <input type="date" id="${p}-mulai" required class="${inputCls}" ${dateChange}>
+          </div>
+          <div>
+            <label for="${p}-selesai" class="${labelCls}">Periode Selesai Pelaksanaan *</label>
+            <input type="date" id="${p}-selesai" required class="${inputCls}" ${dateChange}>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label for="${p}-kuota" class="${labelCls}">Kuota Penerimaan (Orang) *</label>
+            <input type="number" id="${p}-kuota" min="1" step="1" required class="${inputCls}">
+          </div>
+          <div>
+            <label for="${p}-deadline" class="${labelCls}">Batas Akhir Pendaftaran *</label>
+            <input type="date" id="${p}-deadline" required class="${inputCls}" ${dateChange}>
+          </div>
+        </div>
+      </div>
+    `;
   }
 
-  // Validasi Real-time Tanggal Lowongan (PC-01, UI-01)
-  function validateVacancyDates() {
-    const deadline = document.getElementById('min-deadline')?.value;
-    const start = document.getElementById('min-periode-mulai')?.value;
-    const end = document.getElementById('min-periode-selesai')?.value;
-    const alertBox = document.getElementById('min-date-alert');
+  function mountVacancyForms() {
+    document.querySelectorAll('[data-vacancy-form]').forEach(container => {
+      if (container.dataset.mounted) return;
+      const p = container.dataset.vacancyForm;
+      container.innerHTML = renderVacancyFields(p);
+      container.dataset.mounted = '1';
+      // Hapus sorotan error saat pengguna mulai memperbaiki isian
+      container.addEventListener('input', (e) => clearFieldError(e.target));
+      container.addEventListener('change', (e) => clearFieldError(e.target));
+    });
+  }
 
-    if (!alertBox) return true;
-    alertBox.classList.add('hidden');
+  function clearFieldError(el) {
+    if (!el || !el.classList) return;
+    el.classList.remove('border-red-500', 'ring-2', 'ring-red-200');
+    el.removeAttribute('aria-invalid');
+  }
 
-    const todayStr = new Date().toISOString().split('T')[0];
+  function clearVacancyErrors(p) {
+    Object.keys(FIELD_IDS).forEach(f => clearFieldError(fieldEl(p, f)));
+    document.getElementById(`${p}-alert`)?.classList.add('hidden');
+  }
 
-    if (deadline && deadline <= todayStr) {
-      alertBox.textContent = 'Peringatan: Tanggal tenggat pendaftaran harus lebih besar dari hari ini.';
+  function showVacancyErrors(p, errors) {
+    clearVacancyErrors(p);
+    const fields = Object.keys(errors);
+    fields.forEach(f => {
+      const el = fieldEl(p, f);
+      if (el) {
+        el.classList.add('border-red-500', 'ring-2', 'ring-red-200');
+        el.setAttribute('aria-invalid', 'true');
+      }
+    });
+    const alertBox = document.getElementById(`${p}-alert`);
+    if (alertBox && fields.length) {
+      alertBox.innerHTML = '<strong>Mohon perbaiki isian berikut:</strong><ul class="list-disc ml-5 mt-1">' +
+        fields.map(f => `<li>${esc(errors[f])}</li>`).join('') + '</ul>';
       alertBox.classList.remove('hidden');
+      alertBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    fieldEl(p, fields[0])?.focus({ preventScroll: true });
+  }
+
+  function onModeKerjaChange(p) {
+    const mode = fieldEl(p, 'mode_kerja')?.value;
+    const required = RULES.isKotaRequired(mode);
+    const kota = fieldEl(p, 'kota');
+    if (kota) kota.required = required;
+    document.getElementById(`${p}-kota-mark`)?.classList.toggle('hidden', !required);
+    document.getElementById(`${p}-kota-hint`)?.classList.toggle('hidden', required);
+    if (!required) clearFieldError(kota);
+  }
+
+  function setDeadlineMin(p) {
+    // Tenggat minimal besok (aturan: harus lebih besar dari hari ini, zona WIB)
+    const today = RULES.todayWIB();
+    const d = new Date(today + 'T00:00:00');
+    d.setDate(d.getDate() + 1);
+    const tomorrow = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    const deadline = fieldEl(p, 'batas_pendaftaran');
+    if (deadline) deadline.min = tomorrow;
+  }
+
+  function readVacancyForm(p) {
+    const val = (f) => fieldEl(p, f)?.value ?? '';
+    return {
+      judul_posisi: val('judul_posisi'),
+      jenis_kesempatan: val('jenis_kesempatan'),
+      bidang_keahlian: val('bidang_keahlian'),
+      deskripsi: val('deskripsi'),
+      kualifikasi: val('kualifikasi'),
+      mode_kerja: val('mode_kerja'),
+      kota: val('kota'),
+      periode_mulai: val('periode_mulai'),
+      periode_selesai: val('periode_selesai'),
+      kuota: val('kuota'),
+      batas_pendaftaran: val('batas_pendaftaran')
+    };
+  }
+
+  function fillVacancyForm(p, v) {
+    const { mode_kerja, kota } = RULES.parseLokasi(v.lokasi);
+    const set = (f, value) => { const el = fieldEl(p, f); if (el) el.value = value ?? ''; };
+    set('judul_posisi', v.judul_posisi);
+    set('jenis_kesempatan', v.jenis_kesempatan || 'Magang Bersertifikat');
+    set('bidang_keahlian', v.bidang_keahlian || 'Web & Mobile Development');
+    set('deskripsi', v.deskripsi);
+    set('kualifikasi', v.kualifikasi);
+    set('mode_kerja', mode_kerja);          // pre-selected sesuai data lowongan
+    set('kota', kota);
+    set('periode_mulai', v.periode_mulai);
+    set('periode_selesai', v.periode_selesai);
+    set('kuota', v.kuota || 1);
+    set('batas_pendaftaran', v.batas_pendaftaran);
+    onModeKerjaChange(p);
+  }
+
+  /** Payload ke server: field form + lokasi tersusun (format "Kota (Mode)"). */
+  function toPayload(data) {
+    return {
+      judul_posisi: data.judul_posisi,
+      jenis_kesempatan: data.jenis_kesempatan,
+      bidang_keahlian: data.bidang_keahlian,
+      deskripsi: data.deskripsi,
+      kualifikasi: data.kualifikasi,
+      mode_kerja: data.mode_kerja,
+      kota: data.kota,
+      lokasi: data.lokasi,
+      periode_mulai: data.periode_mulai,
+      periode_selesai: data.periode_selesai,
+      kuota: data.kuota,
+      batas_pendaftaran: data.batas_pendaftaran
+    };
+  }
+
+  // Inisialisasi Form Publikasi Lowongan (UI-01)
+  function initCreateVacancyForm() {
+    mountVacancyForms();
+    const kuota = fieldEl(PREFIX_CREATE, 'kuota');
+    if (kuota && !kuota.value) kuota.value = 3;
+    onModeKerjaChange(PREFIX_CREATE);
+    setDeadlineMin(PREFIX_CREATE);
+  }
+
+  function resetCreateVacancyForm() {
+    document.getElementById('form-create-vacancy')?.reset();
+    clearVacancyErrors(PREFIX_CREATE);
+    initCreateVacancyForm();
+  }
+
+  // Validasi real-time tanggal (PC-01) — sama untuk form buat & edit
+  function validateVacancyDates(p = PREFIX_CREATE) {
+    const { errors } = RULES.validateVacancy(readVacancyForm(p));
+    const dateErrors = {};
+    ['periode_mulai', 'periode_selesai', 'batas_pendaftaran'].forEach(f => {
+      const el = fieldEl(p, f);
+      if (errors[f] && el && el.value) dateErrors[f] = errors[f]; // hanya tanggal yang sudah diisi
+    });
+    if (Object.keys(dateErrors).length) {
+      showVacancyErrors(p, dateErrors);
       return false;
     }
-
-    if (start && end && end < start) {
-      alertBox.textContent = 'Peringatan: Periode selesai harus lebih besar atau sama dengan periode mulai pelaksanaan.';
-      alertBox.classList.remove('hidden');
-      return false;
-    }
-
+    clearVacancyErrors(p);
     return true;
   }
 
   // Ajukan Lowongan Baru (PC-01, UC-01)
   async function submitNewVacancy() {
-    if (!validateVacancyDates()) {
-      alert('Mohon perbaiki tanggal pendaftaran atau periode pelaksanaan sesuai ketentuan.');
+    mountVacancyForms();
+    const check = RULES.validateVacancy(readVacancyForm(PREFIX_CREATE));
+    if (!check.valid) {
+      showVacancyErrors(PREFIX_CREATE, check.errors);
       return;
     }
-
-    const judul_posisi = document.getElementById('min-posisi')?.value;
-    const jenis_kesempatan = document.getElementById('min-jenis')?.value;
-    const bidang_keahlian = document.getElementById('min-bidang')?.value;
-    const deskripsi = document.getElementById('min-deskripsi')?.value;
-    const kualifikasi = document.getElementById('min-kualifikasi')?.value;
-    const mode_kerja = document.getElementById('min-mode-kerja')?.value;
-    const kota = document.getElementById('min-kota')?.value;
-    const lokasi = `${mode_kerja} (${kota || 'Seluruh Indonesia'})`;
-    const periode_mulai = document.getElementById('min-periode-mulai')?.value;
-    const periode_selesai = document.getElementById('min-periode-selesai')?.value;
-    const kuota = document.getElementById('min-kuota')?.value;
-    const batas_pendaftaran = document.getElementById('min-deadline')?.value;
-
-    if (!judul_posisi || !deskripsi || !kualifikasi || !periode_mulai || !periode_selesai || !batas_pendaftaran) {
-      alert('Semua bidang formulir wajib diisi.');
-      return;
-    }
+    clearVacancyErrors(PREFIX_CREATE);
 
     const user = window.SIMAGA_AUTH.getUser();
     const profile = window.SIMAGA_AUTH.getProfile() || {};
@@ -82,25 +272,16 @@ window.SIMAGA_MIN = (function() {
       const res = await window.SIMAGA_API.createVacancy({
         id_mitra: profile.id_mitra || 'MTR-101',
         id_user: user ? user.id_user : 'USR-002',
-        judul_posisi,
-        jenis_kesempatan,
-        bidang_keahlian,
-        deskripsi,
-        kualifikasi,
-        lokasi,
-        periode_mulai,
-        periode_selesai,
-        kuota: Number(kuota) || 1,
-        batas_pendaftaran
+        ...toPayload(check.data)
       });
 
       if (res.status === 'success') {
         alert('🎉 Pengajuan lowongan berhasil dikirim!\nStatus: Menunggu Kurasi & Persetujuan Admin Career & Internship FILKOM UB.');
-        // Reset Form
-        document.getElementById('form-create-vacancy')?.reset();
+        resetCreateVacancyForm();
         renderPartnerVacancies();
         window.SIMAGA_ROUTER.navigateTo('min-lowongan-saya');
       } else {
+        if (res.errors) showVacancyErrors(PREFIX_CREATE, res.errors);
         alert(res.message || 'Gagal mengajukan lowongan.');
       }
     } catch (err) {
@@ -152,6 +333,7 @@ window.SIMAGA_MIN = (function() {
               ${badge}
             </div>
             <p class="text-xs text-gray-500">${v.jenis_kesempatan} • ${v.bidang_keahlian || '-'} • ${v.lokasi} • Batas: ${v.batas_pendaftaran}</p>
+            <p class="text-[11px] text-gray-400">Periode: ${v.periode_mulai || '-'} s.d. ${v.periode_selesai || '-'}</p>
             ${v.status_publikasi === 'ditolak' && v.catatan_revisi ? `
               <p class="text-xs text-red-600 bg-red-50 p-2 rounded-lg mt-2 font-medium">Catatan Revisi: ${v.catatan_revisi}</p>
             ` : ''}
@@ -203,7 +385,7 @@ window.SIMAGA_MIN = (function() {
       tableBody.innerHTML = `
         <tr>
           <td colspan="6" class="py-12 text-center text-gray-400">
-            Belum ada mahasiswa yang melamar pada lowongan instansi Anda.
+            Belum ada pelamar pada lowongan instansi Anda.
           </td>
         </tr>
       `;
@@ -332,22 +514,14 @@ window.SIMAGA_MIN = (function() {
       return;
     }
 
+    mountVacancyForms();
     const modal = document.getElementById('modal-edit-vacancy');
-    const form = document.getElementById('form-edit-vacancy');
-    if (form) form.reset();
+    document.getElementById('form-edit-vacancy')?.reset();
+    clearVacancyErrors(PREFIX_EDIT);
 
     document.getElementById('edit-vac-id').value = v.id_lowongan;
-    document.getElementById('edit-vac-judul').value = v.judul_posisi || '';
-    document.getElementById('edit-vac-jenis').value = v.jenis_kesempatan || 'Magang Bersertifikat';
-    const bidangSel = document.getElementById('edit-vac-bidang');
-    if (bidangSel) bidangSel.value = v.bidang_keahlian || 'Web & Mobile Development';
-    document.getElementById('edit-vac-deskripsi').value = v.deskripsi || '';
-    document.getElementById('edit-vac-kualifikasi').value = v.kualifikasi || '';
-    document.getElementById('edit-vac-lokasi').value = v.lokasi || '';
-    document.getElementById('edit-vac-mulai').value = v.periode_mulai || '';
-    document.getElementById('edit-vac-selesai').value = v.periode_selesai || '';
-    document.getElementById('edit-vac-kuota').value = v.kuota || 1;
-    document.getElementById('edit-vac-deadline').value = v.batas_pendaftaran || '';
+    fillVacancyForm(PREFIX_EDIT, v);
+    setDeadlineMin(PREFIX_EDIT);
 
     modal?.classList.remove('hidden');
     if (window.lucide) window.lucide.createIcons();
@@ -357,34 +531,13 @@ window.SIMAGA_MIN = (function() {
     if (e) e.preventDefault();
 
     const id_lowongan = document.getElementById('edit-vac-id')?.value;
-    const judul_posisi = document.getElementById('edit-vac-judul')?.value?.trim();
-    const jenis_kesempatan = document.getElementById('edit-vac-jenis')?.value;
-    const bidang_keahlian = document.getElementById('edit-vac-bidang')?.value;
-    const deskripsi = document.getElementById('edit-vac-deskripsi')?.value?.trim();
-    const kualifikasi = document.getElementById('edit-vac-kualifikasi')?.value?.trim();
-    const lokasi = document.getElementById('edit-vac-lokasi')?.value?.trim();
-    const periode_mulai = document.getElementById('edit-vac-mulai')?.value;
-    const periode_selesai = document.getElementById('edit-vac-selesai')?.value;
-    const kuota = Number(document.getElementById('edit-vac-kuota')?.value) || 1;
-    const batas_pendaftaran = document.getElementById('edit-vac-deadline')?.value;
-
-    if (!judul_posisi || !deskripsi || !kualifikasi || !lokasi || !batas_pendaftaran) {
-      alert('Mohon lengkapi seluruh kolom formulir.');
+    // Validasi IDENTIK dengan form Publikasi Lowongan
+    const check = RULES.validateVacancy(readVacancyForm(PREFIX_EDIT));
+    if (!check.valid) {
+      showVacancyErrors(PREFIX_EDIT, check.errors);
       return;
     }
-
-    const payload = {
-      judul_posisi,
-      jenis_kesempatan,
-      bidang_keahlian,
-      deskripsi,
-      kualifikasi,
-      lokasi,
-      periode_mulai,
-      periode_selesai,
-      kuota,
-      batas_pendaftaran
-    };
+    clearVacancyErrors(PREFIX_EDIT);
 
     const btn = document.getElementById('btn-submit-edit-vac');
     const origText = btn ? btn.innerHTML : '';
@@ -395,12 +548,13 @@ window.SIMAGA_MIN = (function() {
     if (window.lucide) window.lucide.createIcons();
 
     try {
-      const res = await window.SIMAGA_API.updateVacancy(id_lowongan, payload);
+      const res = await window.SIMAGA_API.updateVacancy(id_lowongan, toPayload(check.data));
       if (res.status === 'success') {
         alert('✅ Lowongan berhasil diperbarui!');
         document.getElementById('modal-edit-vacancy')?.classList.add('hidden');
         renderPartnerVacancies();
       } else {
+        if (res.errors) showVacancyErrors(PREFIX_EDIT, res.errors);
         alert(res.message || 'Gagal memperbarui lowongan.');
       }
     } catch (err) {
@@ -432,8 +586,14 @@ window.SIMAGA_MIN = (function() {
     }
   }
 
+  // Render kedua form segera (script dimuat di akhir <body>, DOM sudah tersedia)
+  mountVacancyForms();
+  initCreateVacancyForm();
+
   return {
     initCreateVacancyForm,
+    resetCreateVacancyForm,
+    onModeKerjaChange,
     validateVacancyDates,
     submitNewVacancy,
     renderPartnerVacancies,

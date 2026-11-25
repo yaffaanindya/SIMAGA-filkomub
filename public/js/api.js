@@ -30,17 +30,24 @@ window.SIMAGA_API = (function() {
 
   // Helper request ke Node backend
   async function requestNode(endpoint, options = {}) {
+    let res;
     try {
-      const res = await fetch(endpoint, options);
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({ message: res.statusText }));
-        throw new Error(errData.message || 'Terjadi kesalahan pada server');
-      }
-      return await res.json();
+      res = await fetch(endpoint, options);
     } catch (err) {
-      console.warn('[API Client] Node endpoint gagal:', err.message);
+      // Hanya kegagalan JARINGAN yang boleh memicu fallback mode offline (localStorage)
+      console.warn('[API Client] Node endpoint tidak terjangkau:', err.message);
       throw err;
     }
+
+    if (!res.ok) {
+      // PENTING: respons 4xx/5xx adalah JAWABAN SAH dari server (mis. validasi ditolak).
+      // Sebelumnya respons ini dilempar sebagai error lalu ditangkap fallback offline di
+      // setiap fungsi API, sehingga data yang DITOLAK server tetap "berhasil" disimpan lokal.
+      const errData = await res.json().catch(() => ({ message: res.statusText }));
+      console.warn('[API Client] Server menolak permintaan:', res.status, errData.message);
+      return { status: 'error', httpStatus: res.status, ...errData, message: errData.message || 'Terjadi kesalahan pada server' };
+    }
+    return await res.json();
   }
 
   // Helper request ke Google Apps Script Web App
@@ -183,6 +190,9 @@ window.SIMAGA_API = (function() {
           body: JSON.stringify(vacancyData)
         });
       } catch (err) {
+        const check = window.SIMAGA_VACANCY_RULES.validateVacancy(vacancyData);
+        if (!check.valid) return { status: 'error', message: Object.values(check.errors)[0], errors: check.errors };
+        vacancyData = { ...vacancyData, ...check.data };
         const id_lowongan = 'LOW-' + Date.now();
         const newV = {
           id_lowongan,
@@ -190,6 +200,7 @@ window.SIMAGA_API = (function() {
           id_admin: '',
           judul_posisi: vacancyData.judul_posisi,
           jenis_kesempatan: vacancyData.jenis_kesempatan || 'Magang Bersertifikat',
+          bidang_keahlian: vacancyData.bidang_keahlian,
           deskripsi: vacancyData.deskripsi,
           kualifikasi: vacancyData.kualifikasi,
           lokasi: vacancyData.lokasi,
@@ -514,13 +525,21 @@ window.SIMAGA_API = (function() {
           body: JSON.stringify({ nim, status_karir, data_jawaban })
         });
       } catch (err) {
-        // Auto Deteksi Anomali
+        // Mode offline tetap memakai validasi kirim final yang sama dengan server
+        const check = window.SIMAGA_TRACER_RULES.validateTracerFinal(status_karir, data_jawaban);
+        if (!check.valid) {
+          return { status: 'error', message: 'Kuesioner belum lengkap: ' + check.missing.map(m => m.label).join(', ') + '.', missing: check.missing };
+        }
+
+        // Auto Deteksi Anomali (masa tunggu 0-36 bulan, relevansi 1-5, pendapatan wajar)
         let isAnomali = false;
         const nominalGaji = Number(data_jawaban.gaji_nominal) || 0;
         const masaTunggu = Number(data_jawaban.masa_tunggu);
+        const relevansi = Number(data_jawaban.keselarasan);
 
         if (nominalGaji > 50000000 || nominalGaji < 0) isAnomali = true;
-        if (masaTunggu < 0 || masaTunggu > 60) isAnomali = true;
+        if (data_jawaban.masa_tunggu !== '' && data_jawaban.masa_tunggu !== undefined && (masaTunggu < 0 || masaTunggu > 36)) isAnomali = true;
+        if (relevansi < 1 || relevansi > 5) isAnomali = true;
 
         const refCount = window.SIMAGA_DB.kuesioner.length + 1;
         const refNumber = `SIMAGA/TS/2026/${String(refCount).padStart(4, '0')}`;
@@ -978,9 +997,12 @@ window.SIMAGA_API = (function() {
         });
         return res;
       } catch (err) {
+        const check = window.SIMAGA_VACANCY_RULES.validateVacancy(data);
+        if (!check.valid) return { status: 'error', message: Object.values(check.errors)[0], errors: check.errors };
         const v = window.SIMAGA_DB.lowongan.find(item => item.id_lowongan === id_lowongan);
         if (v) {
-          Object.assign(v, data);
+          const { mode_kerja, kota, ...clean } = check.data;
+          Object.assign(v, clean);
           window.syncLocalDB();
           return { status: 'success', message: 'Lowongan berhasil diperbarui.', data: v };
         }

@@ -121,7 +121,7 @@
         <div id="nav-role-mitraindustri" class="role-nav hidden flex items-center gap-5">
           <a href="#min-buat-lowongan" class="nav-link text-gray-600 hover:text-brand-900 transition-colors">Publikasi Lowongan</a>
           <a href="#min-lowongan-saya" class="nav-link text-gray-600 hover:text-brand-900 transition-colors">Lowongan Saya</a>
-          <a href="#min-pelamar" class="nav-link text-gray-600 hover:text-brand-900 transition-colors">Seleksi Pelamar Magang</a>
+          <a href="#min-pelamar" class="nav-link text-gray-600 hover:text-brand-900 transition-colors">Seleksi Pelamar</a>
         </div>
 
         <!-- Admin Links -->
@@ -682,6 +682,9 @@
           </button>
         </div>
 
+        <!-- Peringatan kolom wajib saat Kirim Final (diisi oleh alm.js) -->
+        <div id="ts-error-banner" class="hidden p-4 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl font-medium" role="alert"></div>
+
         <!-- Stepper Indicator (UI-04) -->
         <div class="grid grid-cols-3 gap-2 text-center text-xs font-bold border-b border-gray-100 pb-4">
           <div id="nav-step-1" onclick="window.SIMAGA_ALM.setStep(1)" class="p-2.5 rounded-xl cursor-pointer bg-brand-800 text-white">
@@ -732,7 +735,7 @@
         <div id="tracer-step-2" class="hidden space-y-6">
           <div>
             <label class="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-2">Pilih Kondisi Karier Anda Saat Ini: *</label>
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div id="ts-status-group" class="grid grid-cols-2 sm:grid-cols-4 gap-3 rounded-2xl">
               <label class="flex items-center gap-2.5 p-3.5 bg-white border border-gray-200 rounded-2xl cursor-pointer hover:border-brand-800 transition-colors">
                 <input type="radio" name="ts-status-karir" value="Bekerja" onchange="window.SIMAGA_ALM.onCareerStatusChange()" class="accent-brand-800">
                 <span class="text-xs font-bold text-gray-800">Bekerja</span>
@@ -772,7 +775,7 @@
               <label class="block text-xs font-bold text-gray-800 mb-1.5">
                 Seberapa relevan kurikulum dan kompetensi perkuliahan di FILKOM UB dengan kebutuhan karier Anda saat ini? (Skala 1 - 5) *
               </label>
-              <div class="flex items-center gap-6 p-4 bg-gray-50 rounded-2xl border border-gray-200 text-xs font-bold">
+              <div id="ts-relevansi-group" class="flex items-center gap-6 p-4 bg-gray-50 rounded-2xl border border-gray-200 text-xs font-bold">
                 <label class="flex items-center gap-1.5 cursor-pointer">
                   <input type="radio" name="ts-relevansi" value="1" class="accent-brand-800"> 1 (Sangat Rendah)
                 </label>
@@ -786,7 +789,7 @@
                   <input type="radio" name="ts-relevansi" value="4" class="accent-brand-800"> 4 (Tinggi)
                 </label>
                 <label class="flex items-center gap-1.5 cursor-pointer">
-                  <input type="radio" name="ts-relevansi" value="5" checked class="accent-brand-800"> 5 (Sangat Tinggi)
+                  <input type="radio" name="ts-relevansi" value="5" class="accent-brand-800"> 5 (Sangat Tinggi)
                 </label>
               </div>
             </div>
@@ -830,91 +833,19 @@
           <h2 class="text-2xl font-serif-prestige font-bold text-brand-900">Publikasi Lowongan Magang / Kerja</h2>
         </div>
 
-        <!-- Alert Peringatan Validasi Tanggal (PC-01) -->
-        <div id="min-date-alert" class="hidden p-3.5 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl font-medium"></div>
-
-        <form id="form-create-vacancy" class="space-y-4">
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label class="block text-xs font-bold text-gray-700 mb-1">Judul Posisi Lowongan *</label>
-              <input type="text" id="min-posisi" required class="w-full text-xs p-2.5 border border-gray-300 rounded-xl bg-white" placeholder="Contoh: UI/UX Designer Intern">
-            </div>
-            <div>
-              <label class="block text-xs font-bold text-gray-700 mb-1">Jenis Kesempatan *</label>
-              <select id="min-jenis" class="w-full text-xs p-2.5 border border-gray-300 rounded-xl bg-white">
-                <option value="Magang Bersertifikat">Magang Bersertifikat</option>
-                <option value="Pekerjaan">Lowongan Pekerjaan Penuh Waktu</option>
-              </select>
-            </div>
-          </div>
-
-          <div>
-            <label class="block text-xs font-bold text-gray-700 mb-1">Bidang Keahlian *</label>
-            <select id="min-bidang" class="w-full text-xs p-2.5 border border-gray-300 rounded-xl bg-white">
-              <option value="UI/UX Design">UI/UX Design</option>
-              <option value="Web &amp; Mobile Development">Web &amp; Mobile Development</option>
-              <option value="Data &amp; AI">Data &amp; AI</option>
-              <option value="Quality Assurance &amp; DevOps">Quality Assurance &amp; DevOps</option>
-              <option value="Sistem &amp; Jaringan">Sistem &amp; Jaringan</option>
-            </select>
-          </div>
-
-          <div>
-            <label class="block text-xs font-bold text-gray-700 mb-1">Deskripsi Tugas & Tanggung Jawab *</label>
-            <textarea id="min-deskripsi" rows="3" required class="w-full text-xs p-2.5 border border-gray-300 rounded-xl bg-white" placeholder="Jelaskan ruang lingkup tugas, proyek yang dikerjakan, dan lingkungan kerja..."></textarea>
-          </div>
-
-          <div>
-            <label class="block text-xs font-bold text-gray-700 mb-1">Kualifikasi & Keahlian yang Dibutuhkan *</label>
-            <textarea id="min-kualifikasi" rows="2" required class="w-full text-xs p-2.5 border border-gray-300 rounded-xl bg-white" placeholder="Contoh: Mahasiswa semester 5-7, menguasai Figma, pemahaman dasar User Journey..."></textarea>
-          </div>
-
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label class="block text-xs font-bold text-gray-700 mb-1">Mode Kerja</label>
-              <select id="min-mode-kerja" class="w-full text-xs p-2.5 border border-gray-300 rounded-xl bg-white">
-                <option value="On-site">On-site (Di Kantor)</option>
-                <option value="Hybrid">Hybrid (Kombinasi)</option>
-                <option value="Remote">Remote (Kerja Jarak Jauh)</option>
-              </select>
-            </div>
-            <div>
-              <label class="block text-xs font-bold text-gray-700 mb-1">Kota / Lokasi Kantor</label>
-              <input type="text" id="min-kota" class="w-full text-xs p-2.5 border border-gray-300 rounded-xl bg-white" placeholder="Contoh: Malang / Surabaya / Jakarta">
-            </div>
-          </div>
-
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label class="block text-xs font-bold text-gray-700 mb-1">Periode Mulai Pelaksanaan *</label>
-              <input type="date" id="min-periode-mulai" onchange="window.SIMAGA_MIN.validateVacancyDates()" required class="w-full text-xs p-2.5 border border-gray-300 rounded-xl bg-white">
-            </div>
-            <div>
-              <label class="block text-xs font-bold text-gray-700 mb-1">Periode Selesai Pelaksanaan *</label>
-              <input type="date" id="min-periode-selesai" onchange="window.SIMAGA_MIN.validateVacancyDates()" required class="w-full text-xs p-2.5 border border-gray-300 rounded-xl bg-white">
-            </div>
-          </div>
-
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label class="block text-xs font-bold text-gray-700 mb-1">Kuota Penerimaan (Mahasiswa) *</label>
-              <input type="number" id="min-kuota" min="1" value="3" required class="w-full text-xs p-2.5 border border-gray-300 rounded-xl bg-white">
-            </div>
-            <div>
-              <label class="block text-xs font-bold text-gray-700 mb-1">Batas Akhir Pendaftaran *</label>
-              <input type="date" id="min-deadline" onchange="window.SIMAGA_MIN.validateVacancyDates()" required class="w-full text-xs p-2.5 border border-gray-300 rounded-xl bg-white">
-            </div>
-          </div>
+        <form id="form-create-vacancy" class="space-y-4" novalidate onsubmit="event.preventDefault(); window.SIMAGA_MIN.submitNewVacancy()">
+          <!-- Field dirender dari template yang SAMA dengan modal Edit Lowongan (min.js: renderVacancyFields) -->
+          <div id="vacancy-fields-create" data-vacancy-form="vac-create"></div>
 
           <div class="p-3 bg-amber-50 rounded-xl border border-amber-200 text-xs text-amber-900">
             <strong>Status Pengajuan Awal:</strong> Draf akan berstatus <span class="font-bold underline">"Menunggu Verifikasi"</span> dan otomatis diteruskan ke dasbor staf kurasi fakultas.
           </div>
 
           <div class="flex justify-end gap-3 pt-4 border-t border-gray-200">
-            <button type="button" onclick="document.getElementById('form-create-vacancy').reset()" class="px-5 py-2.5 text-xs font-bold text-gray-600 hover:text-gray-900">
+            <button type="button" onclick="window.SIMAGA_MIN.resetCreateVacancyForm()" class="px-5 py-2.5 text-xs font-bold text-gray-600 hover:text-gray-900">
               Batal
             </button>
-            <button type="button" id="btn-submit-vacancy" onclick="window.SIMAGA_MIN.submitNewVacancy()" 
+            <button type="submit" id="btn-submit-vacancy" 
               class="px-6 py-2.5 bg-brand-800 text-white rounded-xl text-xs font-bold hover:bg-brand-900 shadow-sm transition-colors">
               Ajukan Lowongan ke Admin
             </button>
@@ -950,7 +881,7 @@
       <div class="flex justify-between items-center bg-white p-6 rounded-2xl border border-gray-200">
         <div>
           <span class="badge-pill-academic mb-1.5"><i data-lucide="users" class="w-3.5 h-3.5 text-brand-800"></i> Evaluasi Kandidat</span>
-          <h2 class="text-2xl font-bold text-brand-900">Peninjauan Berkas Lamaran Mahasiswa</h2>
+          <h2 class="text-2xl font-bold text-brand-900">Peninjauan Berkas Lamaran</h2>
         </div>
       </div>
 
@@ -960,7 +891,7 @@
             <thead>
               <tr class="bg-gray-50 border-b border-gray-200 text-gray-600 text-[11px] uppercase tracking-wider font-bold">
                 <th class="p-3.5">#</th>
-                <th class="p-3.5">Mahasiswa</th>
+                <th class="p-3.5">Pelamar</th>
                 <th class="p-3.5">Posisi Dilamar</th>
                 <th class="p-3.5">Berkas</th>
                 <th class="p-3.5">Status Seleksi</th>
@@ -1008,11 +939,11 @@
         </div>
 
         <!-- Filter Dropdown Bar (UI-05) -->
-        <div class="pt-3 border-t border-gray-100 grid grid-cols-1 sm:grid-cols-3 gap-3 items-center">
+        <div class="pt-3 border-t border-gray-100 grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
           <div>
             <label class="block text-[11px] font-bold text-gray-600 mb-1">Filter Program Studi:</label>
             <select id="adm-filter-prodi" onchange="window.SIMAGA_ADM.renderAnalyticsDashboard()" 
-              class="w-full text-xs p-2.5 border border-gray-300 rounded-xl bg-white font-medium">
+              class="w-full h-10 text-xs px-2.5 border border-gray-300 rounded-xl bg-white font-medium">
               <option value="all">Semua Program Studi (Fakultas)</option>
               <option value="Sistem Informasi">S1 Sistem Informasi</option>
               <option value="Teknik Informatika">S1 Teknik Informatika</option>
@@ -1024,7 +955,7 @@
           <div>
             <label class="block text-[11px] font-bold text-gray-600 mb-1">Filter Angkatan / Tahun Kelulusan:</label>
             <select id="adm-filter-tahun" onchange="window.SIMAGA_ADM.renderAnalyticsDashboard()" 
-              class="w-full text-xs p-2.5 border border-gray-300 rounded-xl bg-white font-medium">
+              class="w-full h-10 text-xs px-2.5 border border-gray-300 rounded-xl bg-white font-medium">
               <option value="all">Semua Tahun Kelulusan</option>
               <option value="2026">2026</option>
               <option value="2025">2025</option>
@@ -1032,10 +963,10 @@
               <option value="2023">2023</option>
             </select>
           </div>
-          <div class="flex items-end">
-            <button onclick="window.SIMAGA_ADM.renderAnalyticsDashboard()" 
-              class="w-full py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-xl text-xs font-bold transition-colors">
-              Terapkan Filter
+          <div>
+            <button type="button" onclick="window.SIMAGA_ADM.renderAnalyticsDashboard()" 
+              class="w-full h-10 px-4 inline-flex items-center justify-center gap-2 border border-gray-300 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-xl text-xs font-bold transition-colors">
+              <i data-lucide="filter" class="w-3.5 h-3.5"></i> Terapkan Filter
             </button>
           </div>
         </div>
@@ -1427,7 +1358,7 @@
 
       <div>
         <span class="text-[11px] font-bold px-2 py-0.5 bg-gray-100 rounded text-gray-600" id="review-app-id">REG-001</span>
-        <h3 id="review-candidate-name" class="text-lg font-bold text-gray-900 mt-1">Nama Mahasiswa</h3>
+        <h3 id="review-candidate-name" class="text-lg font-bold text-gray-900 mt-1">Nama Pelamar</h3>
         <p id="review-position-name" class="text-xs text-emerald-800 font-semibold">Posisi Magang</p>
       </div>
 
@@ -1961,74 +1892,16 @@
         <p class="text-xs text-gray-500">Perbarui rincian posisi, kualifikasi, kuota, atau tenggat pendaftaran lowongan ini.</p>
       </div>
 
-      <form id="form-edit-vacancy" onsubmit="window.SIMAGA_MIN.submitEditVacancy(event)" class="space-y-4 text-xs">
+      <form id="form-edit-vacancy" novalidate onsubmit="window.SIMAGA_MIN.submitEditVacancy(event)" class="space-y-4">
         <input type="hidden" id="edit-vac-id">
-
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <div class="sm:col-span-2">
-            <label class="block font-bold text-gray-700 mb-1">Judul Posisi Lowongan: *</label>
-            <input type="text" id="edit-vac-judul" required class="w-full p-2.5 border border-gray-300 rounded-xl">
-          </div>
-          <div>
-            <label class="block font-bold text-gray-700 mb-1">Jenis Kesempatan: *</label>
-            <select id="edit-vac-jenis" class="w-full p-2.5 border border-gray-300 rounded-xl bg-white font-bold">
-              <option value="Magang Bersertifikat">Magang Bersertifikat</option>
-              <option value="Pekerjaan">Pekerjaan</option>
-            </select>
-          </div>
-          <div class="sm:col-span-3">
-            <label class="block font-bold text-gray-700 mb-1">Bidang Keahlian: *</label>
-            <select id="edit-vac-bidang" class="w-full p-2.5 border border-gray-300 rounded-xl bg-white font-bold">
-              <option value="UI/UX Design">UI/UX Design</option>
-              <option value="Web &amp; Mobile Development">Web &amp; Mobile Development</option>
-              <option value="Data &amp; AI">Data &amp; AI</option>
-              <option value="Quality Assurance &amp; DevOps">Quality Assurance &amp; DevOps</option>
-              <option value="Sistem &amp; Jaringan">Sistem &amp; Jaringan</option>
-            </select>
-          </div>
-        </div>
-
-        <div>
-          <label class="block font-bold text-gray-700 mb-1">Deskripsi Tugas & Tanggung Jawab: *</label>
-          <textarea id="edit-vac-deskripsi" rows="3" required class="w-full p-2.5 border border-gray-300 rounded-xl leading-relaxed"></textarea>
-        </div>
-
-        <div>
-          <label class="block font-bold text-gray-700 mb-1">Kualifikasi Pelamar: *</label>
-          <textarea id="edit-vac-kualifikasi" rows="3" required class="w-full p-2.5 border border-gray-300 rounded-xl leading-relaxed"></textarea>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div>
-            <label class="block font-bold text-gray-700 mb-1">Lokasi Penempatan: *</label>
-            <input type="text" id="edit-vac-lokasi" required class="w-full p-2.5 border border-gray-300 rounded-xl">
-          </div>
-          <div>
-            <label class="block font-bold text-gray-700 mb-1">Kuota Mahasiswa / Lulusan: *</label>
-            <input type="number" id="edit-vac-kuota" min="1" required class="w-full p-2.5 border border-gray-300 rounded-xl">
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <div>
-            <label class="block font-bold text-gray-700 mb-1">Periode Mulai:</label>
-            <input type="date" id="edit-vac-mulai" class="w-full p-2.5 border border-gray-300 rounded-xl">
-          </div>
-          <div>
-            <label class="block font-bold text-gray-700 mb-1">Periode Selesai:</label>
-            <input type="date" id="edit-vac-selesai" class="w-full p-2.5 border border-gray-300 rounded-xl">
-          </div>
-          <div>
-            <label class="block font-bold text-gray-700 mb-1">Tenggat Lamaran: *</label>
-            <input type="date" id="edit-vac-deadline" required class="w-full p-2.5 border border-gray-300 rounded-xl">
-          </div>
-        </div>
+        <!-- Field dirender dari template yang SAMA dengan form Publikasi Lowongan (min.js: renderVacancyFields) -->
+        <div id="vacancy-fields-edit" data-vacancy-form="vac-edit"></div>
 
         <div class="flex justify-end gap-3 pt-3 border-t border-gray-100">
-          <button type="button" onclick="document.getElementById('modal-edit-vacancy').classList.add('hidden')" class="px-4 py-2 font-bold text-gray-600 hover:text-gray-900">
+          <button type="button" onclick="document.getElementById('modal-edit-vacancy').classList.add('hidden')" class="px-5 py-2.5 text-xs font-bold text-gray-600 hover:text-gray-900">
             Batal
           </button>
-          <button type="submit" id="btn-submit-edit-vac" class="px-6 py-2.5 bg-brand-800 hover:bg-brand-900 text-white rounded-xl font-bold shadow-md transition-colors flex items-center gap-2">
+          <button type="submit" id="btn-submit-edit-vac" class="px-6 py-2.5 bg-brand-800 hover:bg-brand-900 text-white rounded-xl text-xs font-bold shadow-md transition-colors flex items-center gap-2">
             <i data-lucide="save" class="w-4 h-4"></i> Simpan Perubahan Lowongan
           </button>
         </div>
@@ -2038,6 +1911,8 @@
 
   <!-- APPLICATION SCRIPTS -->
   <script src="/js/data-mock.js"></script>
+  <script src="/js/vacancy-rules.js"></script>
+  <script src="/js/tracer-rules.js"></script>
   <script src="/js/api.js"></script>
   <script src="/js/pdf-generator.js"></script>
   <script src="/js/auth.js"></script>

@@ -25,6 +25,9 @@ const {
   getTableData
 } = require('./services/sheetsService');
 const { uploadApplicationFile, LOCAL_UPLOAD_DIR } = require('./services/driveService');
+// Aturan validasi bersama frontend & backend (satu sumber, lihat public/js/*-rules.js)
+const { validateVacancy } = require('../public/js/vacancy-rules');
+const { validateTracerFinal } = require('../public/js/tracer-rules');
 const { generateTracerProofPDF } = require('./services/pdfService');
 
 const app = express();
@@ -218,48 +221,27 @@ app.get('/api/vacancies', async (req, res) => {
 // Mitra mengajukan lowongan baru (PC-01, UC-01)
 app.post('/api/vacancies', async (req, res) => {
   try {
-    const { 
-      id_mitra, id_user, judul_posisi, jenis_kesempatan, bidang_keahlian,
-      deskripsi, kualifikasi, lokasi, periode_mulai, 
-      periode_selesai, kuota, batas_pendaftaran 
-    } = req.body;
+    const { id_mitra } = req.body;
 
-    // Validasi input wajib
-    if (!judul_posisi || !deskripsi || !kualifikasi || !lokasi || !periode_mulai || !periode_selesai || !batas_pendaftaran) {
-      return res.status(400).json({ status: 'error', message: 'Semua atribut formulir lowongan wajib dilengkapi.' });
+    // Validasi identik dengan form Publikasi Lowongan & Edit Lowongan (vacancy-rules.js)
+    const { valid, errors, data } = validateVacancy(req.body);
+    if (!valid) {
+      return res.status(400).json({ status: 'error', message: Object.values(errors)[0], errors });
     }
-
-    // Validasi Tanggal
-    const today = new Date();
-    today.setHours(0,0,0,0);
-    const deadline = new Date(batas_pendaftaran);
-    const startDate = new Date(periode_mulai);
-    const endDate = new Date(periode_selesai);
-
-    if (deadline < today) {
-      return res.status(400).json({ status: 'error', message: 'Tanggal tenggat pendaftaran harus lebih besar dari hari ini.' });
-    }
-
-    if (endDate < startDate) {
-      return res.status(400).json({ status: 'error', message: 'Periode selesai harus lebih besar atau sama dengan periode mulai.' });
-    }
-
-    if (Number(kuota) <= 0) {
-      return res.status(400).json({ status: 'error', message: 'Kuota penerimaan harus lebih dari 0.' });
-    }
+    const { judul_posisi } = data;
 
     const created = await addVacancy({
       id_mitra: id_mitra || 'MTR-101',
-      judul_posisi,
-      jenis_kesempatan: jenis_kesempatan || 'Magang Bersertifikat',
-      bidang_keahlian,
-      deskripsi,
-      kualifikasi,
-      lokasi,
-      periode_mulai,
-      periode_selesai,
-      kuota: Number(kuota),
-      batas_pendaftaran
+      judul_posisi: data.judul_posisi,
+      jenis_kesempatan: data.jenis_kesempatan,
+      bidang_keahlian: data.bidang_keahlian,
+      deskripsi: data.deskripsi,
+      kualifikasi: data.kualifikasi,
+      lokasi: data.lokasi,
+      periode_mulai: data.periode_mulai,
+      periode_selesai: data.periode_selesai,
+      kuota: data.kuota,
+      batas_pendaftaran: data.batas_pendaftaran
     });
 
     // Kirim notifikasi ke Admin unit Career & Internship
@@ -289,10 +271,32 @@ app.put('/api/vacancies/:id', async (req, res) => {
   try {
     const vacancies = await getAllVacancies();
     const target = vacancies.find(v => v.id_lowongan === req.params.id);
-    if (target && target.status_publikasi === 'ditolak') {
+    if (!target) {
+      return res.status(404).json({ status: 'error', message: 'Lowongan tidak ditemukan.' });
+    }
+    if (target.status_publikasi === 'ditolak') {
       return res.status(400).json({ status: 'error', message: 'Lowongan yang telah ditolak oleh admin tidak dapat diedit kembali.' });
     }
-    const result = await updateVacancy(req.params.id, req.body);
+
+    // Validasi SAMA PERSIS dengan pembuatan lowongan (sebelumnya edit tidak divalidasi sama sekali)
+    const { valid, errors, data } = validateVacancy(req.body);
+    if (!valid) {
+      return res.status(400).json({ status: 'error', message: Object.values(errors)[0], errors });
+    }
+
+    // Hanya field form yang boleh diubah Mitra (status_publikasi/id_mitra tidak ikut diubah)
+    const result = await updateVacancy(req.params.id, {
+      judul_posisi: data.judul_posisi,
+      jenis_kesempatan: data.jenis_kesempatan,
+      bidang_keahlian: data.bidang_keahlian,
+      deskripsi: data.deskripsi,
+      kualifikasi: data.kualifikasi,
+      lokasi: data.lokasi,
+      periode_mulai: data.periode_mulai,
+      periode_selesai: data.periode_selesai,
+      kuota: data.kuota,
+      batas_pendaftaran: data.batas_pendaftaran
+    });
     res.json({ status: 'success', message: 'Lowongan berhasil diperbarui.', data: result });
   } catch (error) {
     res.status(500).json({ status: 'error', message: error.message });
@@ -589,6 +593,11 @@ app.post('/api/tracer/draft', async (req, res) => {
     const list = mockDB.kuesioner;
     let item = list.find(q => q.nim === nim);
 
+    // Kuesioner yang sudah dikirim final tidak boleh diubah kembali menjadi draf
+    if (item && !item.is_draft && item.nomor_referensi) {
+      return res.status(409).json({ status: 'error', message: 'Kuesioner Anda sudah dikirim final dan tidak dapat diubah lagi.' });
+    }
+
     if (item) {
       item.status_karir = status_karir || item.status_karir;
       item.data_jawaban = JSON.stringify(data_jawaban || {});
@@ -624,10 +633,27 @@ app.post('/api/tracer/draft', async (req, res) => {
 // Kirim final kuesioner Tracer Study (PC-05, UC-07)
 app.post('/api/tracer/submit', async (req, res) => {
   try {
-    const { nim, status_karir, data_jawaban } = req.body;
+    const { nim, status_karir } = req.body;
+    const data_jawaban = (req.body.data_jawaban && typeof req.body.data_jawaban === 'object') ? req.body.data_jawaban : {};
 
-    if (!nim || !status_karir) {
-      return res.status(400).json({ status: 'error', message: 'Status kondisi karier saat ini wajib dipilih.' });
+    if (!nim) {
+      return res.status(400).json({ status: 'error', message: 'NIM wajib disertakan.' });
+    }
+
+    // Validasi kolom wajib kirim final (identik dengan frontend, lihat tracer-rules.js).
+    // Pengiriman final ditolak total bila ada satu saja kolom wajib yang kosong.
+    const check = validateTracerFinal(status_karir, data_jawaban);
+    if (!check.valid) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Kuesioner belum lengkap: ' + check.missing.map(m => m.label).join(', ') + '.',
+        missing: check.missing
+      });
+    }
+
+    const existing = mockDB.kuesioner.find(q => q.nim === nim);
+    if (existing && !existing.is_draft && existing.nomor_referensi) {
+      return res.status(409).json({ status: 'error', message: 'Kuesioner Anda sudah dikirim final sebelumnya.', data: existing });
     }
 
     // Deteksi Anomali Otomatis sesuai spesifikasi: masa tunggu < 0 atau > 36 bulan,
