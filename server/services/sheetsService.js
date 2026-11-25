@@ -6,236 +6,10 @@ require('dotenv').config();
 const SPREADSHEET_ID = process.env.SPREADSHEET_ID;
 const DB_FILE = path.join(__dirname, '../data/simaga_db.json');
 
-// Mock database in-memory fallback yang tersinkronisasi jika Service Account belum dipasang
-const mockDB = {
-  pengguna: [
-    { id_user: "USR-001", email: "bambang@student.ub.ac.id", password_hash: "bambang123", nama_lengkap: "Bambang Prakoso", role: "Mahasiswa", status_akun: "aktif" },
-    { id_user: "USR-002", email: "carmen@techindo.com", password_hash: "mitra123", nama_lengkap: "Carmenita Wijaya, S.Kom.", role: "MitraIndustri", status_akun: "aktif" },
-    { id_user: "USR-003", email: "yaya@alumni.ub.ac.id", password_hash: "yaya123", nama_lengkap: "Yaffa Anindya Oktaviani", role: "Alumni", status_akun: "aktif" },
-    { id_user: "USR-004", email: "dina@ub.ac.id", password_hash: "admin123", nama_lengkap: "Dina Safitri, S.Kom., M.T.", role: "Admin", status_akun: "aktif" },
-    { id_user: "USR-005", email: "kevin@student.ub.ac.id", password_hash: "kevin123", nama_lengkap: "Kevin Sanjaya", role: "Mahasiswa", status_akun: "aktif" },
-    { id_user: "USR-006", email: "rian@alumni.ub.ac.id", password_hash: "rian123", nama_lengkap: "Rian Pratama, S.Kom.", role: "Alumni", status_akun: "aktif" },
-    { id_user: "USR-007", email: "callum@alumni.ub.ac.id", password_hash: "callum123", nama_lengkap: "Callum Turner, S.Kom.", role: "Alumni", status_akun: "aktif" }
-  ],
-  mahasiswa: [
-    { nim: "255150407111077", id_user: "USR-001", prodi: "Sistem Informasi", angkatan: 2025 },
-    { nim: "255150400111068", id_user: "USR-005", prodi: "Teknik Informatika", angkatan: 2025 }
-  ],
-  alumni: [
-    { nim: "215150400111001", id_user: "USR-003", prodi: "Sistem Informasi", tahun_lulus: 2025, status_pengisian: "Belum Mengisi" },
-    { nim: "215150407111097", id_user: "USR-006", prodi: "Teknik Informatika", tahun_lulus: 2024, status_pengisian: "Telah Mengisi" },
-    { nim: "2111111111111122", id_user: "USR-007", prodi: "Teknik Informatika", tahun_lulus: 2025, status_pengisian: "Belum Mengisi" }
-  ],
-  admin: [
-    { id_admin: "ADM-001", id_user: "USR-004", unit_kerja: "Career & Internship" }
-  ],
-  mitra_industri: [
-    { id_mitra: "MTR-101", id_user: "USR-002", nama_perusahaan: "PT Tech Indo Mandiri", alamat: "Jl. Jakarta No. 2, Lowokwaru, Malang", kontak_person: "Carmenita Wijaya", no_telepon: "081230261706", status_kemitraan: "aktif" }
-  ],
-  lowongan: [
-    {
-      id_lowongan: "LOW-001",
-      id_mitra: "MTR-101",
-      id_admin: "ADM-001",
-      judul_posisi: "UI/UX Designer Intern",
-      jenis_kesempatan: "Magang Bersertifikat",
-      deskripsi: "Mengembangkan tampilan antarmuka web dan mobile application berbasis Design System FILKOM UB, melakukan user testing, wireframing, dan usability evaluation.",
-      kualifikasi: "Mahasiswa aktif SI / TI semester 5-7. Mahir menggunakan Figma, Design System, Prototyping. Memiliki portofolio desain relevan.",
-      lokasi: "Surabaya / Hybrid",
-      periode_mulai: "2027-01-05",
-      periode_selesai: "2027-06-30",
-      kuota: 3,
-      batas_pendaftaran: "2026-12-15",
-      status_publikasi: "aktif",
-      catatan_revisi: ""
-    },
-    {
-      id_lowongan: "LOW-002",
-      id_mitra: "MTR-101",
-      id_admin: "ADM-001",
-      judul_posisi: "Full-Stack Web Developer",
-      jenis_kesempatan: "Pekerjaan",
-      deskripsi: "Membangun sistem scalable web platform, REST API, integrasi front-end modern berbasis React & Node.js untuk aplikasi layanan akademik.",
-      kualifikasi: "Lulusan S1 Ilmu Komputer / Sistem Informasi. Menguasai JavaScript/TypeScript, SQL, dan Docker.",
-      lokasi: "Malang (On-site)",
-      periode_mulai: "2027-01-01",
-      periode_selesai: "2028-01-01",
-      kuota: 2,
-      batas_pendaftaran: "2026-12-20",
-      status_publikasi: "aktif",
-      catatan_revisi: ""
-    },
-    {
-      id_lowongan: "LOW-003",
-      id_mitra: "MTR-101",
-      id_admin: "",
-      judul_posisi: "Mobile Developer Intern (Flutter)",
-      jenis_kesempatan: "Magang Bersertifikat",
-      deskripsi: "Membantu perancangan modul transaksi mobile app, integrasi Google Workspace SDK, dan unit testing fungsionalitas.",
-      kualifikasi: "Mahasiswa aktif FILKOM UB. Menguasai Flutter/Dart, state management BLoC, dan Git.",
-      lokasi: "Jakarta (Remote)",
-      periode_mulai: "2027-02-01",
-      periode_selesai: "2027-07-31",
-      kuota: 5,
-      batas_pendaftaran: "2026-12-31",
-      status_publikasi: "menunggu",
-      catatan_revisi: ""
-    },
-    {
-      id_lowongan: "LOW-004",
-      id_mitra: "MTR-101",
-      id_admin: "ADM-001",
-      judul_posisi: "Data Analyst & Business Intelligence Intern",
-      jenis_kesempatan: "Magang Bersertifikat",
-      deskripsi: "Mengolah big data perbankan, menyusun dashboard Tableau & PowerBI, serta analisis tren transaksi digital untuk mendukung keputusan strategis.",
-      kualifikasi: "Mahasiswa aktif Sistem Informasi / Teknik Informatika semester 5-7. Mahir SQL, Python Pandas, dan visualisasi data.",
-      lokasi: "Remote (On-line)",
-      periode_mulai: "2027-01-15",
-      periode_selesai: "2027-07-15",
-      kuota: 4,
-      batas_pendaftaran: "2026-12-25",
-      status_publikasi: "aktif",
-      catatan_revisi: ""
-    },
-    {
-      id_lowongan: "LOW-005",
-      id_mitra: "MTR-101",
-      id_admin: "ADM-001",
-      judul_posisi: "IT Quality Assurance & Software Tester",
-      jenis_kesempatan: "Pekerjaan",
-      deskripsi: "Merancang test scenario, automated testing dengan Selenium/Cypress, dan memastikan keandalan performa sistem sebelum release produksi.",
-      kualifikasi: "Alumni Fresh Graduate S1 FILKOM UB. Memahami SDLC Agile Scrum, API testing (Postman), dan testing otomatis.",
-      lokasi: "Malang (On-site)",
-      periode_mulai: "2027-01-10",
-      periode_selesai: "2028-01-10",
-      kuota: 2,
-      batas_pendaftaran: "2026-12-30",
-      status_publikasi: "aktif",
-      catatan_revisi: ""
-    },
-    {
-      id_lowongan: "LOW-006",
-      id_mitra: "MTR-101",
-      id_admin: "ADM-001",
-      judul_posisi: "Cloud & DevOps Specialist",
-      jenis_kesempatan: "Pekerjaan",
-      deskripsi: "Membangun arsitektur cloud hybrid perbankan, automasi Terraform, microservices cluster management, dan observability sistem.",
-      kualifikasi: "Alumni S1 FILKOM UB (Fresh Graduate / Pengalaman < 2 tahun). Memiliki pemahaman Kubernetes dan Docker.",
-      lokasi: "Jakarta (Hybrid)",
-      periode_mulai: "2027-01-15",
-      periode_selesai: "2028-01-15",
-      kuota: 2,
-      batas_pendaftaran: "2026-12-31",
-      status_publikasi: "aktif",
-      catatan_revisi: ""
-    },
-    {
-      id_lowongan: "LOW-007",
-      id_mitra: "MTR-101",
-      id_admin: "ADM-001",
-      judul_posisi: "Data Scientist & AI Specialist",
-      jenis_kesempatan: "Pekerjaan",
-      deskripsi: "Mengembangkan model machine learning rekomendasi produk e-commerce, NLP chatbot, dan evaluasi performa model AI.",
-      kualifikasi: "Alumni S1 rumpun Informatika. Menguasai Python, Scikit-learn, PyTorch, dan arsitektur LLM.",
-      lokasi: "Jakarta (On-site)",
-      periode_mulai: "2027-02-01",
-      periode_selesai: "2028-02-01",
-      kuota: 3,
-      batas_pendaftaran: "2026-12-28",
-      status_publikasi: "aktif",
-      catatan_revisi: ""
-    },
-    {
-      id_lowongan: "LOW-008",
-      id_mitra: "MTR-101",
-      id_admin: "ADM-001",
-      judul_posisi: "Cybersecurity Analyst Intern",
-      jenis_kesempatan: "Magang Bersertifikat",
-      deskripsi: "Melakukan vulnerability assessment sistem web & API, analisis log keamanan SOC, dan penetration testing terpandu.",
-      kualifikasi: "Mahasiswa aktif FILKOM UB semester 5-7. Memahami OWASP Top 10, network protocols, dan dasar ethical hacking.",
-      lokasi: "Surabaya (On-site)",
-      periode_mulai: "2027-02-01",
-      periode_selesai: "2027-07-31",
-      kuota: 2,
-      batas_pendaftaran: "2026-12-31",
-      status_publikasi: "aktif",
-      catatan_revisi: ""
-    }
-  ],
-  pendaftaran: [
-    {
-      id_pendaftaran: "REG-001",
-      id_lowongan: "LOW-001",
-      id_user: "USR-001",
-      status_seleksi: "wawancara",
-      catatan_seleksi: "Selamat! Berkas administrasi Anda lolos kurasi. Wawancara daring via Google Meet dijadwalkan pada 10 Des 2026 pk 10.00 WIB (Link: meet.google.com/fil-komu-bxb).",
-      tanggal_daftar: "2026-11-02 09:15:00"
-    }
-  ],
-  berkas_persyaratan: [
-    {
-      id_berkas: "BRK-001",
-      id_pendaftaran: "REG-001",
-      jenis_berkas: "CV",
-      nama_file: "cv_bambang_prakoso.pdf",
-      ukuran_kb: 842,
-      drive_file_id: "drive_file_id_001",
-      drive_url: "https://drive.google.com/file/d/1BambangCV_DummyDriveLink/view?usp=sharing",
-      tanggal_unggah: "2026-11-02 09:12:00"
-    },
-    {
-      id_berkas: "BRK-002",
-      id_pendaftaran: "REG-001",
-      jenis_berkas: "Transkrip",
-      nama_file: "transkrip_nilai_bambang.pdf",
-      ukuran_kb: 1250,
-      drive_file_id: "drive_file_id_002",
-      drive_url: "https://drive.google.com/file/d/1BambangTranskrip_DummyDriveLink/view?usp=sharing",
-      tanggal_unggah: "2026-11-02 09:13:00"
-    },
-    {
-      id_berkas: "BRK-003",
-      id_pendaftaran: "REG-001",
-      jenis_berkas: "Surat Rekomendasi",
-      nama_file: "surat_rekomendasi_fakultas_bambang.pdf",
-      ukuran_kb: 620,
-      drive_file_id: "drive_file_id_003",
-      drive_url: "https://drive.google.com/file/d/1BambangRekom_DummyDriveLink/view?usp=sharing",
-      tanggal_unggah: "2026-11-02 09:14:00"
-    }
-  ],
-  kuesioner: [
-    {
-      id_kuesioner: "TRC-001",
-      nim: "215150407111097",
-      id_admin: "ADM-001",
-      periode_survei: 2026,
-      status_karir: "Bekerja",
-      data_jawaban: JSON.stringify({
-        instansi: "PT GoTo Gojek Tokopedia Tbk",
-        posisi: "Software Engineer",
-        gaji: "8-12jt",
-        gaji_nominal: 9500000,
-        masa_tunggu: 2,
-        keselarasan: 5,
-        relevansi_kurikulum: "Sangat Relevan dengan kebutuhan industri software saat ini"
-      }),
-      is_draft: false,
-      status_validasi: "tervalidasi",
-      is_anomali: false,
-      nomor_referensi: "SIMAGA/TS/2026/0001",
-      tanggal_submit: "2026-10-30 14:20:00"
-    }
-  ],
-  riwayat_pengingat: [
-    { id_pengingat: "RMD-001", id_admin: "ADM-001", filter_target: "Angkatan 2022 - Sistem Informasi", jumlah_penerima: 120, tanggal_kirim: "2026-11-01 08:00:00" }
-  ],
-  notifikasi: [
-    { id_notifikasi: "NTF-001", id_user: "USR-001", jenis: "status_seleksi", judul: "Status Lamaran Diperbarui", pesan: "Anda dijadwalkan wawancara pada 10 Des 2026.", is_dibaca: false, tanggal_kirim: "2026-11-03 10:00:00" },
-    { id_notifikasi: "NTF-002", id_user: "USR-002", jenis: "kurasi_lowongan", judul: "Lowongan Disetujui", pesan: "Lowongan UI/UX Designer Intern telah disetujui oleh unit Career & Internship.", is_dibaca: true, tanggal_kirim: "2026-11-01 11:30:00" },
-    { id_notifikasi: "NTF-003", id_user: "USR-003", jenis: "tracer_study", judul: "Pengisian Tracer Study Aktif", pesan: "Halo Yaya, kuesioner pelacakan karier alumni periode 2026 telah dibuka.", is_dibaca: false, tanggal_kirim: "2026-11-01 08:30:00" }
-  ]
-};
+// Mock database in-memory fallback (dipakai bila Service Account belum dipasang).
+// Data awal diambil dari satu sumber seed terpusat: server/seed/seedData.js
+const { buildSeed, SEED_VERSION, BIDANG_KEAHLIAN } = require('../seed/seedData');
+const mockDB = buildSeed();
 
 function saveMockDB() {
   try {
@@ -251,6 +25,12 @@ function loadMockDB() {
   try {
     if (fs.existsSync(DB_FILE)) {
       const data = JSON.parse(fs.readFileSync(DB_FILE, 'utf8'));
+      // Abaikan snapshot lama bila versi seed berubah, agar data demo terbaru selalu terpakai
+      if (data._seed_version !== SEED_VERSION) {
+        console.log(`[MockDB] Versi seed berubah (${data._seed_version || 'tanpa versi'} -> ${SEED_VERSION}). Memakai seed baru.`);
+        saveMockDB();
+        return;
+      }
       Object.keys(data).forEach(k => {
         if (Array.isArray(data[k]) && data[k].length > 0) {
           mockDB[k] = data[k];
@@ -261,6 +41,31 @@ function loadMockDB() {
   } catch(e) {
     console.warn('[MockDB] Gagal memuat dari disk:', e.message);
   }
+}
+
+/**
+ * Kembalikan seluruh tabel mock ke kondisi seed awal (dipakai endpoint reset demo).
+ * Mutasi dilakukan in-place agar referensi `mockDB` yang sudah diimpor modul lain tetap valid.
+ */
+function resetMockDB() {
+  const fresh = buildSeed();
+  Object.keys(mockDB).forEach(k => { delete mockDB[k]; });
+  Object.assign(mockDB, fresh);
+  saveMockDB();
+  return mockDB;
+}
+
+/**
+ * Tebak bidang keahlian dari judul/deskripsi untuk baris lama yang belum punya kolom bidang_keahlian.
+ */
+function inferBidangKeahlian(v) {
+  if (v.bidang_keahlian && BIDANG_KEAHLIAN.includes(v.bidang_keahlian)) return v.bidang_keahlian;
+  const text = `${v.judul_posisi || ''} ${v.deskripsi || ''}`.toLowerCase();
+  if (/ui\/ux|ux|desain|design|figma/.test(text)) return 'UI/UX Design';
+  if (/data|analyst|machine learning|\bai\b|scientist|intelligence/.test(text)) return 'Data & AI';
+  if (/quality assurance|\bqa\b|tester|testing|devops|ci\/cd/.test(text)) return 'Quality Assurance & DevOps';
+  if (/network|jaringan|security|keamanan|cyber|infrastru|cloud/.test(text)) return 'Sistem & Jaringan';
+  return 'Web & Mobile Development';
 }
 
 // Inisialisasi data dari disk saat modul dimulai
@@ -384,6 +189,7 @@ async function getAllVacancies() {
 
   return vacancies.map(v => ({
     ...v,
+    bidang_keahlian: inferBidangKeahlian(v),
     mitra: pMap[v.id_mitra] || null
   }));
 }
@@ -396,6 +202,7 @@ async function addVacancy(vacancyData) {
     id_admin: "",
     judul_posisi: vacancyData.judul_posisi,
     jenis_kesempatan: vacancyData.jenis_kesempatan || "Magang Bersertifikat",
+    bidang_keahlian: inferBidangKeahlian(vacancyData),
     deskripsi: vacancyData.deskripsi,
     kualifikasi: vacancyData.kualifikasi,
     lokasi: vacancyData.lokasi,
@@ -647,6 +454,7 @@ async function updateVacancy(id_lowongan, data) {
 
   if (data.judul_posisi) v.judul_posisi = data.judul_posisi;
   if (data.jenis_kesempatan) v.jenis_kesempatan = data.jenis_kesempatan;
+  if (data.bidang_keahlian && BIDANG_KEAHLIAN.includes(data.bidang_keahlian)) v.bidang_keahlian = data.bidang_keahlian;
   if (data.deskripsi) v.deskripsi = data.deskripsi;
   if (data.kualifikasi) v.kualifikasi = data.kualifikasi;
   if (data.lokasi) v.lokasi = data.lokasi;
@@ -656,6 +464,7 @@ async function updateVacancy(id_lowongan, data) {
   if (data.batas_pendaftaran) v.batas_pendaftaran = data.batas_pendaftaran;
   if (data.status_publikasi) v.status_publikasi = data.status_publikasi;
 
+  saveMockDB();
   return v;
 }
 
@@ -671,6 +480,8 @@ async function deleteVacancy(id_lowongan) {
 module.exports = {
   mockDB,
   saveMockDB,
+  resetMockDB,
+  inferBidangKeahlian,
   getTableData,
   appendTableRow,
   findUser,

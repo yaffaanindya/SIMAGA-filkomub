@@ -29,7 +29,7 @@ window.SIMAGA_ALM = (function() {
     let list = res.data || [];
 
     if (bidang !== 'all') {
-      list = list.filter(v => v.bidang === bidang);
+      list = list.filter(v => v.bidang_keahlian === bidang);
     }
     if (lokasi !== 'all') {
       list = list.filter(v => v.lokasi.toLowerCase().includes(lokasi.toLowerCase()));
@@ -57,15 +57,12 @@ window.SIMAGA_ALM = (function() {
 
     container.innerHTML = list.map(v => {
       const mitraName = v.mitra ? v.mitra.nama_perusahaan : 'Mitra Industri FILKOM';
-      const initials = (mitraName || 'UB').split(' ').map(w => w[0]).join('').substring(0, 3).toUpperCase();
 
       return `
         <div class="card-academic p-6 flex flex-col justify-between group">
           <div class="space-y-3">
             <div class="flex items-start justify-between gap-3">
-              <div class="w-12 h-12 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center font-extrabold text-sm text-blue-900 flex-shrink-0">
-                ${initials}
-              </div>
+              ${window.SIMAGA_UI.docIconBadge('kerja')}
               <div class="flex flex-col items-end gap-1">
                 <span class="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800 border border-blue-200">
                   Pekerjaan Penuh Waktu
@@ -89,7 +86,7 @@ window.SIMAGA_ALM = (function() {
             <div class="space-y-1 text-xs text-gray-500 bg-gray-50 p-3 rounded-xl border border-gray-100">
               <div class="flex justify-between">
                 <span>Bidang:</span>
-                <span class="font-semibold text-gray-800">${v.bidang || 'Teknologi Informasi'}</span>
+                <span class="font-semibold text-gray-800">${v.bidang_keahlian || 'Teknologi Informasi'}</span>
               </div>
               <div class="flex justify-between">
                 <span>Kuota Diterima:</span>

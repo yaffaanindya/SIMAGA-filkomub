@@ -20,22 +20,42 @@ const {
   getTracerSubmissions, 
   mockDB,
   saveMockDB,
+  resetMockDB,
   appendTableRow,
   getTableData
 } = require('./services/sheetsService');
-const { uploadApplicationFile } = require('./services/driveService');
+const { uploadApplicationFile, LOCAL_UPLOAD_DIR } = require('./services/driveService');
 const { generateTracerProofPDF } = require('./services/pdfService');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Railway/Render berada di belakang reverse proxy: agar req.protocol bernilai 'https'
+app.set('trust proxy', true);
+
+/**
+ * Bangun URL absolut (https://host/...) dari path relatif, agar tautan berkas
+ * tidak pernah jatuh ke fallback SPA dan kembali ke halaman SIMAGA.
+ */
+function toAbsoluteUrl(req, url) {
+  if (!url) return '';
+  if (/^https?:\/\//i.test(url)) return url;
+  const base = (process.env.PUBLIC_BASE_URL || `${req.protocol}://${req.get('host')}`).replace(/\/+$/, '');
+  return base + (url.startsWith('/') ? url : '/' + url);
+}
 
 // Middleware
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
-// Static files for Frontend UI
+// Static files for Frontend UI (termasuk /sample-berkas/*.pdf untuk data demo)
 app.use(express.static(path.join(__dirname, '../public')));
+
+// Berkas PDF yang diunggah saat mode lokal/mock (tanpa Google Drive API)
+app.use('/uploads', express.static(LOCAL_UPLOAD_DIR, {
+  setHeaders: (res) => res.setHeader('Content-Disposition', 'inline')
+}));
 
 // Multer memory storage untuk upload 3 berkas lamaran
 const upload = multer({
@@ -169,6 +189,11 @@ app.get('/api/vacancies', async (req, res) => {
       vacancies = vacancies.filter(v => v.jenis_kesempatan === jenis);
     }
 
+    // Filter bidang keahlian (UI/UX Design, Web & Mobile Development, Data & AI, ...)
+    if (bidang && bidang !== 'all') {
+      vacancies = vacancies.filter(v => v.bidang_keahlian === bidang);
+    }
+
     // Filter lokasi
     if (lokasi && lokasi !== 'all') {
       vacancies = vacancies.filter(v => v.lokasi.toLowerCase().includes(lokasi.toLowerCase()));
@@ -194,7 +219,7 @@ app.get('/api/vacancies', async (req, res) => {
 app.post('/api/vacancies', async (req, res) => {
   try {
     const { 
-      id_mitra, id_user, judul_posisi, jenis_kesempatan, 
+      id_mitra, id_user, judul_posisi, jenis_kesempatan, bidang_keahlian,
       deskripsi, kualifikasi, lokasi, periode_mulai, 
       periode_selesai, kuota, batas_pendaftaran 
     } = req.body;
@@ -227,6 +252,7 @@ app.post('/api/vacancies', async (req, res) => {
       id_mitra: id_mitra || 'MTR-101',
       judul_posisi,
       jenis_kesempatan: jenis_kesempatan || 'Magang Bersertifikat',
+      bidang_keahlian,
       deskripsi,
       kualifikasi,
       lokasi,
@@ -306,6 +332,7 @@ app.put('/api/vacancies/:id/curate', async (req, res) => {
     v.status_publikasi = keputusan;
     v.id_admin = id_admin || 'ADM-001';
     v.catatan_revisi = catatan_revisi || '';
+    saveMockDB();
 
     // Kirim Notifikasi ke Mitra
     const mitraList = await getTableData('mitra_industri');
@@ -435,7 +462,8 @@ app.post('/api/applications', upload.fields([
         nama_file: file.originalname,
         ukuran_kb: Math.round(file.size / 1024),
         drive_file_id: driveResult.fileId,
-        drive_url: driveResult.webViewLink,
+        // Selalu simpan URL absolut https:// (Drive webViewLink, atau /uploads/... milik server ini)
+        drive_url: toAbsoluteUrl(req, driveResult.webViewLink),
         tanggal_unggah: nowStr
       };
 
@@ -499,6 +527,7 @@ app.put('/api/applications/:id/status', async (req, res) => {
 
     appItem.status_seleksi = status_seleksi;
     appItem.catatan_seleksi = catatan_seleksi || '';
+    saveMockDB();
 
     // Kirim notifikasi ke mahasiswa
     const labelMap = {
@@ -580,6 +609,7 @@ app.post('/api/tracer/draft', async (req, res) => {
       };
       list.push(item);
     }
+    saveMockDB();
 
     res.json({
       status: 'success',
@@ -600,15 +630,22 @@ app.post('/api/tracer/submit', async (req, res) => {
       return res.status(400).json({ status: 'error', message: 'Status kondisi karier saat ini wajib dipilih.' });
     }
 
-    // Deteksi Anomali Otomatis (gaji fresh grad di luar rentang wajar misal > 50jt atau masa tunggu tidak rasional)
+    // Deteksi Anomali Otomatis sesuai spesifikasi: masa tunggu < 0 atau > 36 bulan,
+    // relevansi kurikulum di luar skala 1-5, atau pendapatan di luar rentang wajar.
     let isAnomali = false;
     const nominalGaji = Number(data_jawaban.gaji_nominal) || 0;
+    const hasMasaTunggu = data_jawaban.masa_tunggu !== undefined && data_jawaban.masa_tunggu !== '';
     const masaTunggu = Number(data_jawaban.masa_tunggu);
+    const hasRelevansi = data_jawaban.keselarasan !== undefined && data_jawaban.keselarasan !== '';
+    const relevansi = Number(data_jawaban.keselarasan);
 
     if (nominalGaji > 50000000 || nominalGaji < 0) {
       isAnomali = true;
     }
-    if (masaTunggu < 0 || masaTunggu > 60) {
+    if (hasMasaTunggu && (Number.isNaN(masaTunggu) || masaTunggu < 0 || masaTunggu > 36)) {
+      isAnomali = true;
+    }
+    if (hasRelevansi && (Number.isNaN(relevansi) || relevansi < 1 || relevansi > 5)) {
       isAnomali = true;
     }
 
@@ -647,6 +684,7 @@ app.post('/api/tracer/submit', async (req, res) => {
     if (targetAlumni) {
       targetAlumni.status_pengisian = 'Telah Mengisi';
     }
+    saveMockDB();
 
     res.json({
       status: 'success',
@@ -967,8 +1005,24 @@ app.put('/api/notifications/:id/read', (req, res) => {
   res.json({ status: 'success', message: 'Notifikasi ditandai dibaca.' });
 });
 
-// Fallback routing untuk Single Page Application
+// Reset data demo ke seed awal (berguna antara gladi & presentasi).
+// Hanya aktif bila env DEMO_RESET_KEY di-set; kirim header "x-demo-reset-key".
+app.post('/api/admin/reset-demo', (req, res) => {
+  const key = process.env.DEMO_RESET_KEY;
+  if (!key) return res.status(404).json({ status: 'error', message: 'Fitur reset demo tidak diaktifkan.' });
+  if (req.get('x-demo-reset-key') !== key) return res.status(403).json({ status: 'error', message: 'Kunci reset tidak valid.' });
+  resetMockDB();
+  res.json({ status: 'success', message: 'Data demo dikembalikan ke kondisi seed awal.' });
+});
+
+// Fallback routing untuk Single Page Application.
+// PENTING: jangan kembalikan index.html untuk API, berkas unggahan, atau path ber-ekstensi
+// (mis. .pdf) — sebelumnya inilah penyebab tautan berkas "kembali ke halaman SIMAGA".
 app.get('*', (req, res) => {
+  if (req.path.startsWith('/api/') || req.path.startsWith('/uploads/') ||
+      req.path.startsWith('/sample-berkas/') || path.extname(req.path)) {
+    return res.status(404).send('Berkas atau sumber daya tidak ditemukan.');
+  }
   res.sendFile(path.join(__dirname, '../public/index.html'));
 });
 

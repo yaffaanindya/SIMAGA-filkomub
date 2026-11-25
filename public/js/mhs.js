@@ -27,10 +27,11 @@ window.SIMAGA_MHS = (function() {
     if (window.lucide) window.lucide.createIcons();
 
     const keyword = document.getElementById('mhs-search-input')?.value || '';
-    const jenis = document.getElementById('mhs-filter-jenis')?.value || 'all';
+    const bidang = document.getElementById('mhs-filter-bidang')?.value || 'all';
     const lokasi = document.getElementById('mhs-filter-lokasi')?.value || 'all';
 
-    const res = await window.SIMAGA_API.getVacancies({ keyword, jenis, lokasi, status: 'aktif' });
+    // Mahasiswa hanya mencari lowongan Magang Bersertifikat (UC-03), difilter per bidang keahlian
+    const res = await window.SIMAGA_API.getVacancies({ keyword, jenis: 'Magang Bersertifikat', bidang, lokasi, status: 'aktif' });
     const list = res.data || [];
 
     if (list.length === 0) {
@@ -48,16 +49,12 @@ window.SIMAGA_MHS = (function() {
     container.innerHTML = list.map(v => {
       const mitraName = v.mitra ? v.mitra.nama_perusahaan : 'Mitra Industri FILKOM';
       const isMagang = v.jenis_kesempatan === 'Magang Bersertifikat';
-      const initials = (mitraName || 'UB').split(' ').map(w => w[0]).join('').substring(0, 3).toUpperCase();
-      const logoColorClass = isMagang ? 'bg-emerald-50 border-emerald-200 text-emerald-900' : 'bg-blue-50 border-blue-200 text-blue-900';
 
       return `
         <div class="card-academic p-6 flex flex-col justify-between group">
           <div class="space-y-3">
             <div class="flex items-start justify-between gap-3">
-              <div class="w-12 h-12 rounded-xl border flex items-center justify-center font-extrabold text-sm ${logoColorClass} flex-shrink-0">
-                ${initials}
-              </div>
+              ${window.SIMAGA_UI.docIconBadge(isMagang ? 'magang' : 'kerja')}
               <div class="flex flex-col items-end gap-1">
                 <span class="text-[10px] font-bold px-2.5 py-0.5 rounded-full ${isMagang ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' : 'bg-blue-100 text-blue-800 border border-blue-200'}">
                   ${v.jenis_kesempatan}
@@ -69,6 +66,7 @@ window.SIMAGA_MHS = (function() {
             </div>
 
             <div>
+              <span class="text-[10px] font-bold uppercase tracking-wide text-gray-500">${v.bidang_keahlian || ''}</span>
               <h3 class="text-base font-bold text-gray-900 group-hover:text-emerald-800 transition-colors leading-snug cursor-pointer"
                 onclick="window.SIMAGA_MHS.openDetailModal('${v.id_lowongan}')">
                 ${v.judul_posisi}
@@ -442,7 +440,7 @@ window.SIMAGA_MHS = (function() {
           <div class="flex flex-wrap items-center gap-2 pt-3 border-t border-gray-100 text-xs">
             <span class="text-gray-500 font-medium">Tautan Berkas Google Drive:</span>
             ${app.berkas.map(b => `
-              <a href="${b.drive_url}" target="_blank" 
+              <a ${window.SIMAGA_UI.fileLinkAttrs(b.drive_url)} 
                 class="inline-flex items-center gap-1 px-2.5 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-semibold transition-colors">
                 <i data-lucide="file-text" class="w-3.5 h-3.5 text-emerald-800"></i> ${b.jenis_berkas} (${b.nama_file})
               </a>

@@ -203,7 +203,14 @@ window.SIMAGA_ADM = (function() {
     tableBody.innerHTML = list.map((item, idx) => {
       const al = item.alumni || {};
       const j = item.data_jawaban_parsed || {};
-      const isAnomali = (item.is_anomali === true || item.is_anomali === 'TRUE') && item.status_validasi !== 'tervalidasi';
+      const isAnomali = [true, 'TRUE', 'true', 1, '1'].includes(item.is_anomali) && item.status_validasi !== 'tervalidasi';
+      // Alasan anomali sesuai aturan deteksi (masa tunggu 0-36 bln, relevansi 1-5, gaji wajar)
+      const mt = Number(j.masa_tunggu), rel = Number(j.keselarasan), gaji = Number(j.gaji_nominal) || 0;
+      const anomaliReasons = [];
+      if (j.masa_tunggu !== undefined && j.masa_tunggu !== '' && (mt < 0 || mt > 36)) anomaliReasons.push('Masa tunggu di luar 0-36 bulan');
+      if (j.keselarasan !== undefined && j.keselarasan !== '' && (rel < 1 || rel > 5)) anomaliReasons.push('Relevansi di luar skala 1-5');
+      if (gaji < 0 || gaji > 50000000) anomaliReasons.push('Pendapatan di luar rentang wajar');
+      const anomaliLabel = anomaliReasons.length ? anomaliReasons.join('; ') : 'Isian tidak wajar';
       const isVerified = item.status_validasi === 'tervalidasi';
 
       let statusPill = '';
@@ -235,7 +242,7 @@ window.SIMAGA_ADM = (function() {
               <span class="text-[11px] text-gray-500">Masa Tunggu: ${j.masa_tunggu !== undefined ? j.masa_tunggu + ' bln' : '-'}</span>
               ${isAnomali ? `
                 <span class="inline-flex items-center gap-1 text-[10px] font-bold text-red-600 bg-red-100 px-2 py-0.5 rounded-full mt-1">
-                  ⚠️ Anomali: Gaji di luar rentang wajar
+                  ⚠️ Anomali: ${anomaliLabel}
                 </span>
               ` : ''}
             </div>

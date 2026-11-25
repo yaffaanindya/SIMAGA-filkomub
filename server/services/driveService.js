@@ -6,6 +6,17 @@ require('dotenv').config();
 
 const ROOT_FOLDER_NAME = 'SIMAGA_Storage';
 
+// Lokasi penyimpanan berkas saat Google Drive API belum dikonfigurasi (mode lokal/mock).
+// Disajikan oleh server.js pada route /uploads. Catatan: disk Railway bersifat sementara
+// (hilang saat redeploy), sehingga untuk produksi tetap disarankan memakai Google Drive.
+const LOCAL_UPLOAD_DIR = path.join(__dirname, '../data/uploads');
+
+function safeFileName(name) {
+  const base = path.basename(String(name || 'berkas.pdf'));
+  const cleaned = base.replace(/[^a-zA-Z0-9._-]+/g, '_').replace(/^_+/, '');
+  return cleaned.toLowerCase().endsWith('.pdf') ? cleaned : `${cleaned || 'berkas'}.pdf`;
+}
+
 /**
  * Mencari atau membuat folder root SIMAGA_Storage
  */
@@ -61,13 +72,19 @@ async function uploadApplicationFile(id_pendaftaran, fileBuffer, originalName, m
 
   // Mode Fallback Lokal jika Drive API belum dikonfigurasi
   if (!drive) {
-    console.log('[Drive Service] Mode Mock/Lokal Aktif. Menyimpan metadata simulasi.');
-    const mockFileId = 'local_drive_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
-    const mockUrl = `/uploads/${id_pendaftaran}/${originalName}`;
+    // Sebelumnya hanya mengembalikan path relatif "/uploads/..." TANPA menyimpan berkas dan
+    // tanpa route /uploads, sehingga klik tautan jatuh ke fallback SPA (kembali ke SIMAGA).
+    // Sekarang berkas benar-benar ditulis ke disk dan disajikan oleh express.static('/uploads').
+    console.log('[Drive Service] Mode Lokal Aktif. Menyimpan berkas ke disk server.');
+    const folder = path.join(LOCAL_UPLOAD_DIR, safeFileName(id_pendaftaran).replace(/\.pdf$/, ''));
+    fs.mkdirSync(folder, { recursive: true });
+    const fileName = `${Date.now()}_${safeFileName(originalName)}`;
+    fs.writeFileSync(path.join(folder, fileName), fileBuffer);
+    const relUrl = `/uploads/${encodeURIComponent(path.basename(folder))}/${encodeURIComponent(fileName)}`;
     return {
-      fileId: mockFileId,
-      webViewLink: mockUrl,
-      webContentLink: mockUrl
+      fileId: 'local_' + fileName,
+      webViewLink: relUrl, // dijadikan URL absolut https:// oleh server.js (toAbsoluteUrl)
+      webContentLink: relUrl
     };
   }
 
@@ -143,6 +160,7 @@ async function uploadApplicationFile(id_pendaftaran, fileBuffer, originalName, m
 }
 
 module.exports = {
+  LOCAL_UPLOAD_DIR,
   getOrCreateRootFolder,
   uploadApplicationFile
 };

@@ -54,6 +54,7 @@ window.SIMAGA_MIN = (function() {
 
     const judul_posisi = document.getElementById('min-posisi')?.value;
     const jenis_kesempatan = document.getElementById('min-jenis')?.value;
+    const bidang_keahlian = document.getElementById('min-bidang')?.value;
     const deskripsi = document.getElementById('min-deskripsi')?.value;
     const kualifikasi = document.getElementById('min-kualifikasi')?.value;
     const mode_kerja = document.getElementById('min-mode-kerja')?.value;
@@ -83,6 +84,7 @@ window.SIMAGA_MIN = (function() {
         id_user: user ? user.id_user : 'USR-002',
         judul_posisi,
         jenis_kesempatan,
+        bidang_keahlian,
         deskripsi,
         kualifikasi,
         lokasi,
@@ -149,7 +151,7 @@ window.SIMAGA_MIN = (function() {
               <h4 class="text-sm font-bold text-gray-900">${v.judul_posisi}</h4>
               ${badge}
             </div>
-            <p class="text-xs text-gray-500">${v.jenis_kesempatan} • ${v.lokasi} • Batas: ${v.batas_pendaftaran}</p>
+            <p class="text-xs text-gray-500">${v.jenis_kesempatan} • ${v.bidang_keahlian || '-'} • ${v.lokasi} • Batas: ${v.batas_pendaftaran}</p>
             ${v.status_publikasi === 'ditolak' && v.catatan_revisi ? `
               <p class="text-xs text-red-600 bg-red-50 p-2 rounded-lg mt-2 font-medium">Catatan Revisi: ${v.catatan_revisi}</p>
             ` : ''}
@@ -236,7 +238,7 @@ window.SIMAGA_MIN = (function() {
           <td class="p-3.5">
             <div class="flex flex-col gap-1">
               ${app.berkas.map(b => `
-                <a href="${b.drive_url}" target="_blank" 
+                <a ${window.SIMAGA_UI.fileLinkAttrs(b.drive_url)} 
                   class="inline-flex items-center gap-1 text-[11px] text-emerald-800 hover:text-emerald-950 font-medium hover:underline">
                   <i data-lucide="external-link" class="w-3 h-3"></i> ${b.jenis_berkas}
                 </a>
@@ -277,7 +279,7 @@ window.SIMAGA_MIN = (function() {
     // Render list berkas Drive
     const berkasContainer = document.getElementById('review-berkas-list');
     berkasContainer.innerHTML = app.berkas.map(b => `
-      <a href="${b.drive_url}" target="_blank" 
+      <a ${window.SIMAGA_UI.fileLinkAttrs(b.drive_url)} 
         class="flex items-center justify-between p-2.5 bg-gray-50 border border-gray-200 rounded-xl hover:bg-emerald-50 hover:border-emerald-300 transition-colors">
         <div class="flex items-center gap-2">
           <i data-lucide="file-check" class="w-4 h-4 text-emerald-700"></i>
@@ -337,6 +339,8 @@ window.SIMAGA_MIN = (function() {
     document.getElementById('edit-vac-id').value = v.id_lowongan;
     document.getElementById('edit-vac-judul').value = v.judul_posisi || '';
     document.getElementById('edit-vac-jenis').value = v.jenis_kesempatan || 'Magang Bersertifikat';
+    const bidangSel = document.getElementById('edit-vac-bidang');
+    if (bidangSel) bidangSel.value = v.bidang_keahlian || 'Web & Mobile Development';
     document.getElementById('edit-vac-deskripsi').value = v.deskripsi || '';
     document.getElementById('edit-vac-kualifikasi').value = v.kualifikasi || '';
     document.getElementById('edit-vac-lokasi').value = v.lokasi || '';
@@ -355,6 +359,7 @@ window.SIMAGA_MIN = (function() {
     const id_lowongan = document.getElementById('edit-vac-id')?.value;
     const judul_posisi = document.getElementById('edit-vac-judul')?.value?.trim();
     const jenis_kesempatan = document.getElementById('edit-vac-jenis')?.value;
+    const bidang_keahlian = document.getElementById('edit-vac-bidang')?.value;
     const deskripsi = document.getElementById('edit-vac-deskripsi')?.value?.trim();
     const kualifikasi = document.getElementById('edit-vac-kualifikasi')?.value?.trim();
     const lokasi = document.getElementById('edit-vac-lokasi')?.value?.trim();
@@ -371,6 +376,7 @@ window.SIMAGA_MIN = (function() {
     const payload = {
       judul_posisi,
       jenis_kesempatan,
+      bidang_keahlian,
       deskripsi,
       kualifikasi,
       lokasi,

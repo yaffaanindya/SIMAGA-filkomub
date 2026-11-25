@@ -150,6 +150,14 @@ window.SIMAGA_API = (function() {
           list = list.filter(v => v.jenis_kesempatan === filter.jenis);
         }
 
+        if (filter.bidang && filter.bidang !== 'all') {
+          list = list.filter(v => v.bidang_keahlian === filter.bidang);
+        }
+
+        if (filter.lokasi && filter.lokasi !== 'all') {
+          list = list.filter(v => (v.lokasi || '').toLowerCase().includes(filter.lokasi.toLowerCase()));
+        }
+
         if (filter.keyword && filter.keyword.trim()) {
           const kw = filter.keyword.toLowerCase();
           list = list.filter(v => 
@@ -339,7 +347,8 @@ window.SIMAGA_API = (function() {
             nama_file: f.filename,
             ukuran_kb: f.size_kb || 512,
             drive_file_id: `drive_${Date.now()}_${i}`,
-            drive_url: `https://drive.google.com/file/d/sample_file_${i}/view?usp=sharing`,
+            // Mode offline: pakai blob URL dari berkas asli (bukan ID Drive palsu yang tidak bisa dibuka)
+            drive_url: f.fileObject ? URL.createObjectURL(f.fileObject) : '',
             tanggal_unggah: nowStr
           };
           window.SIMAGA_DB.berkas_persyaratan.push(rec);
@@ -1047,7 +1056,7 @@ window.SIMAGA_API = (function() {
             nama_file: f.filename,
             ukuran_kb: f.size_kb || 500,
             drive_file_id: 'mock_drive_' + Date.now(),
-            drive_url: 'https://drive.google.com/file/d/mock_alm_' + Date.now() + '/view?usp=sharing',
+            drive_url: f.fileObject ? URL.createObjectURL(f.fileObject) : '',
             tanggal_unggah: nowStr
           });
         });

@@ -42,6 +42,21 @@ Sistem menyediakan tombol **Pilih Akun Demo** pada form login untuk memudahkan p
 * **Mitra Industri (MIN):** `carmen@techindo.com` / `mitra123`
 * **Admin Fakultas (ADM):** `dina@ub.ac.id` / `admin123`
 
+### 3. Data Uji Presentasi (Seed Demo v2)
+Seluruh data demo bersumber dari satu file: `server/seed/seedData.js` (versi SQL: `database/seed_demo_simaga.sql`).
+Saat versi seed berubah, server otomatis mengabaikan snapshot lama `server/data/simaga_db.json`.
+
+| Peran | Akun | Yang bisa diuji |
+|---|---|---|
+| Mahasiswa | `bambang@student.ub.ac.id` / `bambang123` | Filter bidang keahlian, Ajukan Lamaran (LOW-003..006), pantau status REG-001 |
+| Alumni | `yaya@alumni.ub.ac.id` / `yaya123` | Lanjut isi draf TRC-010, Kirim Final, unduh bukti PDF |
+| Mitra | `carmen@techindo.com` / `mitra123` | Buka 3 PDF pelamar, ubah status REG-001..004, Edit/Hapus LOW-011 |
+| Admin | `dina@ub.ac.id` / `admin123` | Setujui LOW-009, Tolak LOW-010, Sahkan TRC-008, Klarifikasi TRC-009 (anomali), Pengingat Massal (3 alumni), Ekspor |
+
+Variabel lingkungan opsional (Railway → Variables):
+* `PUBLIC_BASE_URL` — domain publik untuk tautan berkas contoh (default: domain Railway produksi).
+* `DEMO_RESET_KEY` — bila diisi, `POST /api/admin/reset-demo` dengan header `x-demo-reset-key: <nilai>` mengembalikan data ke seed awal (berguna setelah gladi).
+
 ---
 
 ## 📁 Struktur Berkas Proyek

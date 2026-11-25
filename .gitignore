@@ -31,3 +31,6 @@ npm-debug.log*
 # IDE
 .vscode/
 .idea/
+
+# Berkas unggahan mode lokal (mock)
+server/data/uploads/
