@@ -96,7 +96,6 @@ window.SIMAGA_ROUTER = (function() {
     if (tabId === 'adm-kurasi') window.SIMAGA_ADM.renderVacancyCuration();
     if (tabId === 'adm-analitik') window.SIMAGA_ADM.renderAnalyticsDashboard();
     if (tabId === 'adm-verifikasi') window.SIMAGA_ADM.renderRespondentValidation();
-    if (tabId === 'adm-pengguna') window.SIMAGA_ADM.renderUsersManagement();
 
     if (window.lucide) window.lucide.createIcons();
   }

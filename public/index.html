@@ -124,12 +124,11 @@
           <a href="#min-pelamar" class="nav-link text-gray-600 hover:text-brand-900 transition-colors">Seleksi Pelamar Magang</a>
         </div>
 
-        <!-- Admin Links (Point 13: Added Manajemen Pengguna) -->
+        <!-- Admin Links -->
         <div id="nav-role-admin" class="role-nav hidden flex items-center gap-5">
           <a href="#adm-analitik" class="nav-link text-gray-600 hover:text-brand-900 transition-colors">Dasbor Analitik IKU 1</a>
           <a href="#adm-kurasi" class="nav-link text-gray-600 hover:text-brand-900 transition-colors">Kurasi Lowongan</a>
           <a href="#adm-verifikasi" class="nav-link text-gray-600 hover:text-brand-900 transition-colors">Verifikasi Responden</a>
-          <a href="#adm-pengguna" class="nav-link text-gray-600 hover:text-brand-900 transition-colors">Manajemen Pengguna</a>
         </div>
 
         <a href="#faq" class="nav-link text-gray-600 hover:text-brand-900 transition-colors">Bantuan / FAQ</a>
@@ -1119,109 +1118,6 @@
               </tr>
             </thead>
             <tbody id="adm-respondents-table-body">
-              <!-- Render via adm.js -->
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
-    <!-- ============================================================================
-         VIEW 11B: ADMIN - MANAJEMEN PENGGUNA (Point 13)
-         ============================================================================ -->
-    <section id="view-adm-pengguna" class="tab-content space-y-6">
-      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 rounded-2xl border border-gray-200">
-        <div>
-          <span class="badge-pill-academic mb-1.5"><i data-lucide="users" class="w-3.5 h-3.5 text-brand-800"></i> Hak Akses & Akun</span>
-          <h2 class="text-2xl font-bold text-brand-900">Manajemen Pengguna Sistem SIMAGA</h2>
-        </div>
-        <button onclick="window.SIMAGA_ADM.openAddUserModal()" 
-          class="px-5 py-2.5 bg-brand-800 text-white rounded-xl text-xs font-bold hover:bg-brand-900 transition-colors flex items-center gap-2 shadow-sm">
-          <i data-lucide="user-plus" class="w-4 h-4 text-gold-500"></i> Tambah Pengguna Baru
-        </button>
-      </div>
-
-      <!-- Stat Cards Pengguna -->
-      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div class="card-academic p-4 flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl bg-gray-100 text-gray-800 flex items-center justify-center font-bold">
-            <i data-lucide="users" class="w-5 h-5"></i>
-          </div>
-          <div>
-            <div id="adm-stat-users-total" class="text-xl font-bold text-gray-900">0</div>
-            <div class="text-[11px] text-gray-500 font-semibold">Total Pengguna</div>
-          </div>
-        </div>
-
-        <div class="card-academic p-4 flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-800 flex items-center justify-center font-bold">
-            <i data-lucide="graduation-cap" class="w-5 h-5"></i>
-          </div>
-          <div>
-            <div id="adm-stat-users-mhs" class="text-xl font-bold text-emerald-900">0</div>
-            <div class="text-[11px] text-gray-500 font-semibold">Mahasiswa Aktif</div>
-          </div>
-        </div>
-
-        <div class="card-academic p-4 flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-800 flex items-center justify-center font-bold">
-            <i data-lucide="award" class="w-5 h-5"></i>
-          </div>
-          <div>
-            <div id="adm-stat-users-alm" class="text-xl font-bold text-blue-900">0</div>
-            <div class="text-[11px] text-gray-500 font-semibold">Alumni Terdaftar</div>
-          </div>
-        </div>
-
-        <div class="card-academic p-4 flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl bg-purple-50 text-purple-800 flex items-center justify-center font-bold">
-            <i data-lucide="building" class="w-5 h-5"></i>
-          </div>
-          <div>
-            <div id="adm-stat-users-min" class="text-xl font-bold text-purple-900">0</div>
-            <div class="text-[11px] text-gray-500 font-semibold">Mitra Industri</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Filter & Search Bar -->
-      <div class="bg-white p-4 rounded-2xl border border-gray-200 flex flex-col sm:flex-row justify-between items-center gap-3">
-        <div class="w-full sm:w-80 relative">
-          <i data-lucide="search" class="w-4 h-4 text-gray-400 absolute left-3 top-2.5"></i>
-          <input type="text" id="adm-users-search" oninput="window.SIMAGA_ADM.filterUsersTable()" 
-            placeholder="Cari nama, email, NIM, perusahaan..." 
-            class="w-full pl-9 pr-3 py-1.5 text-xs border border-gray-300 rounded-xl focus:ring-2 focus:ring-brand-800 focus:outline-none">
-        </div>
-
-        <div class="flex items-center gap-2 w-full sm:w-auto">
-          <label class="text-xs font-semibold text-gray-600 shrink-0">Filter Peran:</label>
-          <select id="adm-users-filter-role" onchange="window.SIMAGA_ADM.filterUsersTable()" 
-            class="py-1.5 px-3 text-xs border border-gray-300 rounded-xl bg-white font-semibold">
-            <option value="all">Semua Peran</option>
-            <option value="Mahasiswa">Mahasiswa</option>
-            <option value="Alumni">Alumni</option>
-            <option value="MitraIndustri">Mitra Industri</option>
-            <option value="Admin">Admin</option>
-          </select>
-        </div>
-      </div>
-
-      <!-- Table Users -->
-      <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
-        <div class="overflow-x-auto">
-          <table class="w-full text-left border-collapse">
-            <thead>
-              <tr class="bg-gray-50 border-b border-gray-200 text-gray-600 text-[11px] uppercase tracking-wider font-bold">
-                <th class="p-3.5">#</th>
-                <th class="p-3.5">ID User / Surel</th>
-                <th class="p-3.5">Nama Lengkap</th>
-                <th class="p-3.5">Peran (Role)</th>
-                <th class="p-3.5">Detail Profil Relasional</th>
-                <th class="p-3.5">Status Akun</th>
-                <th class="p-3.5 text-center">Aksi</th>
-              </tr>
-            </thead>
-            <tbody id="adm-users-table-body">
               <!-- Render via adm.js -->
             </tbody>
           </table>
