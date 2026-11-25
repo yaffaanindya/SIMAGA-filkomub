@@ -225,27 +225,6 @@ const mockDB = {
       is_anomali: false,
       nomor_referensi: "SIMAGA/TS/2026/0001",
       tanggal_submit: "2026-10-30 14:20:00"
-    },
-    {
-      id_kuesioner: "TRC-002",
-      nim: "215150400111001",
-      id_admin: "",
-      periode_survei: 2026,
-      status_karir: "Bekerja",
-      data_jawaban: JSON.stringify({
-        instansi: "PT Inovasi Sentosa",
-        posisi: "Junior UI Designer",
-        gaji: ">50jt",
-        gaji_nominal: 85000000, // ANOMALI gaji fresh grad 85jt
-        masa_tunggu: 1,
-        keselarasan: 4,
-        relevansi_kurikulum: "Cukup relevan"
-      }),
-      is_draft: false,
-      status_validasi: "menunggu",
-      is_anomali: true,
-      nomor_referensi: "SIMAGA/TS/2026/0002",
-      tanggal_submit: "2026-11-05 10:15:00"
     }
   ],
   riwayat_pengingat: [
